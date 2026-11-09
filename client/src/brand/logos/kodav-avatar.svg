@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080.0 1080.0" width="1080" height="1080" role="img" aria-labelledby="t">
+<title id="t">KODAV</title>
+<rect width="1080" height="1080" fill="#0B1B33"/>
+<g transform="translate(90.00 75.00) scale(7.50000)">
+<path d="M35 37 L60 85" stroke="#F7F8FA" stroke-width="13" stroke-linecap="round" fill="none"/>
+<path d="M60 85 L85 37" stroke="#C9A45C" stroke-width="13" stroke-linecap="round" fill="none"/>
+<circle cx="35" cy="37" r="8.5" fill="#F7F8FA"/>
+<circle cx="85" cy="37" r="8.5" fill="#C9A45C"/>
+<circle cx="60" cy="85" r="11" fill="#C9A45C"/>
+<circle cx="60" cy="85" r="4.2" fill="#0B1B33"/>
+</g>
+</svg>

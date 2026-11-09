@@ -1,0 +1,12 @@
+KODAV Technologies — kit de marque
+
+logos/   Logos vectoriels (SVG). Par défaut : kodav-logo-horizontal.svg sur fond clair,
+         kodav-logo-horizontal-dark.svg sur fond bleu nuit. Favicon : kodav-favicon.svg.
+png/     Versions PNG : photo de profil WhatsApp / Facebook / LinkedIn (kodav-avatar-1080.png),
+         icône d'app 512, apple-touch-icon 180, favicon 32, logo horizontal clair et sombre.
+fonts/   Plus Jakarta Sans (titres) et Inter (texte), licence SIL OFL 1.1.
+tokens.json  Couleurs (thèmes clair et sombre), typographie, espacements, rayons, ombres.
+
+Couleurs principales : bleu nuit #0B1B33 · bleu ardoise #1E3A5F · or sable #C9A45C · fond #F7F8FA.
+Règles complètes : la charte graphique KODAV Technologies (Design System) sur Claude.
+Pour la plateforme : copiez ce dossier dans client/src/brand/ et indiquez-le à Claude Code.

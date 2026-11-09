@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120.0 120.0" width="120" height="120" role="img" aria-labelledby="t">
+<title id="t">KODAV</title>
+<g transform="translate(0.00 0.00) scale(1.00000)">
+<mask id="kodav-m-white" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+<rect width="120" height="120" fill="#fff"/>
+<path d="M35 37 L60 85" stroke="#000" stroke-width="13" stroke-linecap="round" fill="none"/>
+<path d="M60 85 L85 37" stroke="#000" stroke-width="13" stroke-linecap="round" fill="none"/>
+<circle cx="35" cy="37" r="8.5" fill="#000"/>
+<circle cx="85" cy="37" r="8.5" fill="#000"/>
+<circle cx="60" cy="85" r="11" fill="#000"/>
+<circle cx="60" cy="85" r="4.2" fill="#fff"/>
+</mask>
+<rect width="120" height="120" rx="28" fill="#FFFFFF" mask="url(#kodav-m-white)"/>
+</g>
+</svg>

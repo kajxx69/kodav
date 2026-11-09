@@ -1,0 +1,9 @@
+node_modules
+dist
+build
+.react-router
+coverage
+package-lock.json
+client/src/brand
+PROMPT_PLATEFORME.md
+*.png

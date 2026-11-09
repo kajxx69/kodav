@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+/* Polices locales du kit de marque. Les variables de couleur et le thème Tailwind
+   complet seront générés depuis brand/tokens.json en phase 1. */
+@font-face {
+  font-family: 'Inter';
+  src: url('./brand/fonts/Inter-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('./brand/fonts/Inter-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('./brand/fonts/PlusJakartaSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+:root {
+  --surface: #f7f8fa;
+  --ink: #0f172a;
+}
+
+body {
+  background: var(--surface);
+  color: var(--ink);
+}
