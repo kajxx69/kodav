@@ -213,6 +213,8 @@ const auditLogSchema = new Schema(
     action: { type: String, required: true },
     entity: { type: String, required: true },
     entityId: { type: Schema.Types.ObjectId, required: true },
+    /** Résumé lisible du changement (sans donnée secrète). */
+    summary: { type: String, default: '' },
     ip: String,
     userAgent: String,
     at: { type: Date, default: () => new Date() },

@@ -5,14 +5,23 @@ import {
   type AuthUser,
   type Paginated,
   type UserRole,
+  adminCreateUserSchema,
+  type AdminCreateUserInput,
 } from '@kodav/shared';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import type { z } from 'zod';
+import { Search, UserPlus } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { SpaceHeader } from '~/components/app/AppShell';
 import {
+  Alert,
   Badge,
   Button,
+  Modal,
+  toast,
   DataTable,
   ErrorState,
   SelectField,
@@ -20,6 +29,8 @@ import {
   type Column,
 } from '~/components/ui';
 import { apiRequest } from '~/lib/api';
+import { applyServerErrors } from '~/lib/forms';
+import { useAuthStore } from '~/stores/auth';
 
 type AdminUser = AuthUser & { isActive: boolean };
 
@@ -81,11 +92,119 @@ const columns: Column<AdminUser>[] = [
     cell: (u) => dateFormat.format(new Date(u.createdAt)),
     sortValue: (u) => u.createdAt,
   },
+  { key: 'actions', header: '', cell: (u) => <ActiveToggle user={u} /> },
 ];
 
 const roleOptions = USER_ROLES.map((r) => ({ value: r, label: USER_ROLE_LABELS[r] }));
 
+function NewMemberForm({ onDone }: { onDone: () => void }) {
+  const queryClient = useQueryClient();
+  const [formError, setFormError] = useState<string | null>(null);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<AdminCreateUserInput, unknown, z.output<typeof adminCreateUserSchema>>({
+    resolver: zodResolver(adminCreateUserSchema),
+    defaultValues: { firstName: '', lastName: '', email: '', phone: '', role: 'technicien' },
+  });
+  const create = useMutation({
+    mutationFn: (v: z.output<typeof adminCreateUserSchema>) =>
+      apiRequest('/admin/users', { method: 'POST', json: v }),
+    onSuccess() {
+      void queryClient.invalidateQueries({ queryKey: ['private', 'admin', 'users'] });
+      toast('Compte créé', {
+        description: 'Un email l’invite à choisir son mot de passe.',
+        variant: 'success',
+      });
+      onDone();
+    },
+    onError: (err) =>
+      setFormError(
+        applyServerErrors(err, setError, ['firstName', 'lastName', 'email', 'phone', 'role']),
+      ),
+  });
+  return (
+    <form
+      noValidate
+      onSubmit={handleSubmit((v) => {
+        setFormError(null);
+        create.mutate(v);
+      })}
+      className="grid gap-4 sm:grid-cols-2"
+    >
+      {formError && (
+        <Alert variant="danger" className="sm:col-span-2">
+          {formError}
+        </Alert>
+      )}
+      <TextField
+        label="Prénom"
+        required
+        error={errors.firstName?.message}
+        {...register('firstName')}
+      />
+      <TextField label="Nom" required error={errors.lastName?.message} {...register('lastName')} />
+      <TextField
+        label="Email"
+        type="email"
+        required
+        containerClassName="sm:col-span-2"
+        error={errors.email?.message}
+        {...register('email')}
+      />
+      <TextField
+        label="Téléphone"
+        type="tel"
+        prefix="+225"
+        error={errors.phone?.message}
+        {...register('phone')}
+      />
+      <SelectField
+        label="Rôle"
+        options={[
+          { value: 'technicien', label: 'Technicien' },
+          { value: 'admin', label: 'Administrateur' },
+        ]}
+        {...register('role')}
+      />
+      <div className="flex justify-end gap-2 sm:col-span-2">
+        <Button type="button" variant="ghost" onClick={onDone}>
+          Annuler
+        </Button>
+        <Button type="submit" variant="secondary" loading={create.isPending}>
+          Créer et inviter
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function ActiveToggle({ user }: { user: AdminUser }) {
+  const queryClient = useQueryClient();
+  const me = useAuthStore((s) => s.user?.id);
+  const update = useMutation({
+    mutationFn: () =>
+      apiRequest(`/admin/users/${user.id}`, {
+        method: 'PATCH',
+        json: { isActive: !user.isActive },
+      }),
+    onSuccess: () =>
+      void queryClient.invalidateQueries({ queryKey: ['private', 'admin', 'users'] }),
+    onError: (err) =>
+      toast('Modification impossible', { description: err.message, variant: 'error' }),
+  });
+  if (user.id === me) return <span className="text-caption text-ink-muted">Vous</span>;
+  return (
+    <Button variant="ghost" size="sm" loading={update.isPending} onClick={() => update.mutate()}>
+      {user.isActive ? 'Désactiver' : 'Réactiver'}
+    </Button>
+  );
+}
+
 export default function AdminUsers() {
+  const [creating, setCreating] = useState(false);
   const [params, setParams] = useSearchParams();
   const role = (USER_ROLES as readonly string[]).includes(params.get('role') ?? '')
     ? (params.get('role') as UserRole)
@@ -117,8 +236,22 @@ export default function AdminUsers() {
     <>
       <SpaceHeader
         title="Utilisateurs"
-        lead="Comptes clients, techniciens et administrateurs. La gestion des rôles et des accès arrive avec le back-office complet."
+        lead="Comptes clients, techniciens et administrateurs. Un compte désactivé est déconnecté immédiatement."
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <UserPlus aria-hidden />
+            Ajouter un membre de l’équipe
+          </Button>
+        }
       />
+      <Modal
+        open={creating}
+        onOpenChange={setCreating}
+        title="Nouveau membre de l’équipe"
+        description="Il reçoit un email pour choisir son mot de passe."
+      >
+        {creating && <NewMemberForm onDone={() => setCreating(false)} />}
+      </Modal>
       <form
         role="search"
         className="flex flex-col gap-3 sm:flex-row sm:items-end"

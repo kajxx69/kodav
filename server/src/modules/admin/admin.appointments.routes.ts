@@ -6,6 +6,7 @@ import {
 } from '@kodav/shared';
 import { Router } from 'express';
 import { trusted } from 'mongoose';
+import { audit } from '../../lib/audit.js';
 import { AppError, sendOk } from '../../lib/http.js';
 import { authenticate, requireRole } from '../../middlewares/auth.js';
 import {
@@ -55,6 +56,7 @@ adminAppointmentsRouter.patch('/appointments/:id', async (req, res) => {
 
   if (input.status === 'annulee') {
     await cancelAppointment(a, 'Annulée par l’équipe', req.user!._id, true);
+    await audit(req, 'appointment.cancel', 'Appointment', a._id, a.reference);
     sendOk(res, (await withNotes([await loadAppointmentDto(a._id)]))[0]);
     return;
   }
@@ -84,6 +86,13 @@ adminAppointmentsRouter.patch('/appointments/:id', async (req, res) => {
   if (planned) pushAppointmentStatus(a, 'planifiee', req.user!._id);
   await a.save();
   if (planned || input.technician !== undefined || input.start) notifyStatus(a);
+  await audit(
+    req,
+    'appointment.update',
+    'Appointment',
+    a._id,
+    `${a.reference} : ${a.status}${input.start ? `, déplacé au ${a.start.toISOString()}` : ''}`,
+  );
   sendOk(res, (await withNotes([await loadAppointmentDto(a._id)]))[0]);
 });
 
@@ -116,5 +125,6 @@ adminAppointmentsRouter.put('/availability', async (req, res) => {
     { $set: settings },
     { upsert: true },
   );
+  await audit(req, 'availability.update', 'AvailabilitySettings', req.user!._id);
   sendOk(res, await getAvailability());
 });

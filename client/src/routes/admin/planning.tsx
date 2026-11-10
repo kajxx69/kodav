@@ -40,6 +40,7 @@ import {
 } from '~/components/ui';
 import { AppointmentStatusBadge } from '~/features/appointments/AppointmentView';
 import { apiRequest } from '~/lib/api';
+import { cn } from '~/lib/cn';
 import { applyServerErrors } from '~/lib/forms';
 import { useStaffLive } from '~/lib/realtime';
 
@@ -90,14 +91,30 @@ function AppointmentRow({ a, technicians }: { a: AdminAppointmentDto; technician
           {a.service?.name ?? a.description}
         </span>
       </span>
-      <SelectField
-        label="Technicien"
-        placeholder="À affecter"
-        disabled={closed || update.isPending}
-        options={technicians.map((t) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` }))}
-        value={a.technician?.id ?? ''}
-        onChange={(e) => update.mutate({ technician: e.target.value || null })}
-      />
+      <div className="flex flex-col gap-2">
+        <SelectField
+          label="Technicien"
+          placeholder="À affecter"
+          disabled={closed || update.isPending}
+          options={technicians.map((t) => ({ value: t.id, label: `${t.firstName} ${t.lastName}` }))}
+          value={a.technician?.id ?? ''}
+          onChange={(e) => update.mutate({ technician: e.target.value || null })}
+        />
+        {!closed && (
+          <TextField
+            label="Déplacer au"
+            type="datetime-local"
+            step={900}
+            defaultValue={a.start.slice(0, 16)}
+            onBlur={(e) => {
+              // Abidjan est en UTC+0 : la saisie locale vaut l'heure UTC.
+              const value = e.target.value;
+              if (value && value !== a.start.slice(0, 16))
+                update.mutate({ start: `${value}:00.000Z` });
+            }}
+          />
+        )}
+      </div>
       {!closed ? (
         <Button
           variant="ghost"
@@ -378,6 +395,208 @@ function AvailabilityForm({ settings }: { settings: AvailabilitySettings }) {
   );
 }
 
+const DAY_MS = 86_400_000;
+const weekday = new Intl.DateTimeFormat('fr-FR', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  timeZone: TZ,
+});
+
+function mondayOf(date: Date) {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  return d;
+}
+
+/**
+ * Semaine : une ligne par technicien (et « À affecter »), une colonne par jour. Glisser une
+ * intervention vers une autre case la déplace au même horaire et/ou la réaffecte.
+ */
+function WeekBoard() {
+  const queryClient = useQueryClient();
+  const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()));
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [over, setOver] = useState<string | null>(null);
+  const days = Array.from({ length: 7 }, (_, i) => new Date(weekStart.getTime() + i * DAY_MS));
+  const from = days[0]!.toISOString().slice(0, 10);
+  const to = days[6]!.toISOString().slice(0, 10);
+  const query = useQuery({
+    queryKey: [...KEY, 'week', from],
+    queryFn: () =>
+      apiRequest<AdminAppointmentDto[]>(`/admin/appointments?from=${from}&to=${to}&limit=200`),
+  });
+  const technicians = useQuery({
+    queryKey: ['private', 'admin', 'technicians'],
+    queryFn: () => apiRequest<Technician[]>('/admin/technicians'),
+  });
+  useStaffLive(() => void queryClient.invalidateQueries({ queryKey: KEY }));
+  const move = useMutation({
+    mutationFn: ({ id, body }: { id: string; body: Record<string, unknown> }) =>
+      apiRequest(`/admin/appointments/${id}`, { method: 'PATCH', json: body }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: KEY });
+      toast('Intervention déplacée', {
+        description: 'Le client et le technicien sont prévenus.',
+        variant: 'success',
+      });
+    },
+    onError: (err) =>
+      toast('Déplacement impossible', { description: err.message, variant: 'error' }),
+  });
+
+  const rows: { id: string | null; name: string }[] = [
+    { id: null, name: 'À affecter' },
+    ...(technicians.data ?? []).map((t) => ({ id: t.id, name: `${t.firstName} ${t.lastName}` })),
+  ];
+  const items = (query.data ?? []).filter((a) => a.status !== 'annulee');
+  const cell = (tech: string | null, day: Date) =>
+    items.filter(
+      (a) =>
+        (a.technician?.id ?? null) === tech &&
+        a.start.slice(0, 10) === day.toISOString().slice(0, 10),
+    );
+
+  const drop = (tech: string | null, day: Date) => {
+    const a = items.find((x) => x.id === dragging);
+    setDragging(null);
+    setOver(null);
+    if (!a) return;
+    const body: Record<string, unknown> = {};
+    const date = day.toISOString().slice(0, 10);
+    if (a.start.slice(0, 10) !== date) body.start = `${date}${a.start.slice(10)}`;
+    if ((a.technician?.id ?? null) !== tech) body.technician = tech;
+    if (Object.keys(body).length) move.mutate({ id: a.id, body });
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setWeekStart(new Date(weekStart.getTime() - 7 * DAY_MS))}
+        >
+          Semaine précédente
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => setWeekStart(mondayOf(new Date()))}>
+          Cette semaine
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setWeekStart(new Date(weekStart.getTime() + 7 * DAY_MS))}
+        >
+          Semaine suivante
+        </Button>
+        <p className="text-body-sm text-ink-muted">
+          Faites glisser une intervention pour la déplacer ou la réaffecter. Au clavier : vue Liste.
+        </p>
+      </div>
+      {query.isPending || technicians.isPending ? (
+        <Skeleton className="h-80" />
+      ) : query.isError ? (
+        <ErrorState message={query.error.message} onRetry={() => void query.refetch()} />
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-line bg-surface-raised">
+          <table className="w-full min-w-[56rem] table-fixed border-collapse text-body-sm">
+            <caption className="sr-only">Planning de la semaine par technicien</caption>
+            <thead>
+              <tr>
+                <th
+                  scope="col"
+                  className="w-36 border-b border-line p-2 text-left text-label text-ink-muted"
+                >
+                  Technicien
+                </th>
+                {days.map((d) => (
+                  <th
+                    key={d.toISOString()}
+                    scope="col"
+                    className="border-b border-l border-line p-2 text-left text-label text-ink-muted first-letter:uppercase"
+                  >
+                    {weekday.format(d)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id ?? 'none'}>
+                  <th
+                    scope="row"
+                    className="border-t border-line p-2 text-left align-top text-label text-ink"
+                  >
+                    {r.name}
+                  </th>
+                  {days.map((d) => {
+                    const key = `${r.id ?? 'none'}-${d.toISOString()}`;
+                    return (
+                      <td
+                        key={key}
+                        onDragOver={(e) => {
+                          if (!dragging) return;
+                          e.preventDefault();
+                          setOver(key);
+                        }}
+                        onDragLeave={() => setOver((o) => (o === key ? null : o))}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          drop(r.id, d);
+                        }}
+                        className={cn(
+                          'h-24 border-t border-l border-line p-1.5 align-top transition-colors',
+                          over === key && 'bg-info-soft',
+                        )}
+                      >
+                        <ul className="flex flex-col gap-1.5">
+                          {cell(r.id, d).map((a) => {
+                            const locked = ['en_cours', 'terminee', 'validee'].includes(a.status);
+                            return (
+                              <li
+                                key={a.id}
+                                draggable={!locked}
+                                onDragStart={(e) => {
+                                  e.dataTransfer.effectAllowed = 'move';
+                                  e.dataTransfer.setData('text/plain', a.id);
+                                  setDragging(a.id);
+                                }}
+                                onDragEnd={() => {
+                                  setDragging(null);
+                                  setOver(null);
+                                }}
+                                title={`${a.reference} · ${a.contact.name}${a.address.commune ? ` · ${a.address.commune}` : ''}`}
+                                className={cn(
+                                  'rounded-md border border-line bg-surface p-1.5 text-caption shadow-sm',
+                                  !locked && 'cursor-grab active:cursor-grabbing',
+                                  dragging === a.id && 'opacity-50',
+                                  a.status === 'demande_recue' && 'border-l-2 border-l-warning',
+                                )}
+                              >
+                                <span className="block text-label text-ink tabular-nums">
+                                  {hour.format(new Date(a.start))}
+                                </span>
+                                <span className="block truncate text-ink">{a.contact.name}</span>
+                                <span className="block truncate text-ink-muted">
+                                  {a.address.commune ?? INTERVENTION_MODE_LABELS[a.mode]}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPlanning() {
   const availability = useQuery({
     queryKey: ['private', 'admin', 'availability'],
@@ -389,11 +608,15 @@ export default function AdminPlanning() {
         title="Planning"
         lead="Interventions des 14 prochains jours, affectation des techniciens et créneaux proposés aux clients."
       />
-      <Tabs defaultValue="interventions">
+      <Tabs defaultValue="semaine">
         <TabsList aria-label="Planning">
-          <TabsTrigger value="interventions">Interventions</TabsTrigger>
+          <TabsTrigger value="semaine">Semaine</TabsTrigger>
+          <TabsTrigger value="interventions">Liste</TabsTrigger>
           <TabsTrigger value="disponibilites">Disponibilités</TabsTrigger>
         </TabsList>
+        <TabsContent value="semaine">
+          <WeekBoard />
+        </TabsContent>
         <TabsContent value="interventions">
           <Interventions />
         </TabsContent>

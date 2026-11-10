@@ -33,9 +33,14 @@ export function inBackground(task: Promise<unknown>, what: string) {
   task.catch((err: unknown) => logger.error({ err }, what));
 }
 
-/** Échéance du ticket : heures ouvrées selon la priorité (formule souscrite plus tard). */
-export async function slaFor(priority: TicketPriority, from: Date) {
-  const hours = DEFAULT_SLA_HOURS[priority];
+/** Échéance du ticket : heures ouvrées selon la priorité et la formule souscrite. */
+export async function slaFor(
+  priority: TicketPriority,
+  from: Date,
+  owner: { organization?: Types.ObjectId | null; client?: Types.ObjectId | null } = {},
+) {
+  const { subscriptionSlaHours } = await import('../billing/billing.service.js');
+  const hours = (await subscriptionSlaHours(owner, priority)) ?? DEFAULT_SLA_HOURS[priority];
   return { hours, dueAt: addBusinessHours(from, hours, await getAvailability()) };
 }
 
@@ -279,6 +284,16 @@ export async function notifyMessage(
       await sendTemplatedMail({
         to: client.email,
         subject: `Réponse à votre demande ${ticket.reference}`,
+        template: {
+          key: 'ticket_reply',
+          vars: {
+            prenom: client.firstName,
+            reference: ticket.reference,
+            sujet: ticket.subject,
+            auteur: message.author.name,
+            message: message.body,
+          },
+        },
         greeting: `Bonjour ${client.firstName},`,
         paragraphs: [
           `${message.author.name} a répondu à votre demande « ${ticket.subject} » :`,

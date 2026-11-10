@@ -1,9 +1,5 @@
 import { type RouteConfig, index, layout, prefix, route } from '@react-router/dev/routes';
 
-/** Rubriques d'un espace livrées plus tard : page d'attente commune (un id par route). */
-const placeholders = (space: string, paths: string[]) =>
-  paths.map((path) => route(path, 'routes/space-placeholder.tsx', { id: `${space}-${path}` }));
-
 const profile = (space: string) =>
   route('profil', 'routes/space-profile.tsx', { id: `${space}-profile` });
 
@@ -26,7 +22,7 @@ export default [
       route('tickets/nouveau', 'routes/espace-client/ticket-new.tsx'),
       route('tickets/:id', 'routes/espace-client/ticket.tsx'),
       route('parc', 'routes/espace-client/parc.tsx'),
-      ...placeholders('client', ['documents']),
+      route('documents', 'routes/espace-client/documents.tsx'),
       profile('client'),
     ]),
   ]),
@@ -45,11 +41,17 @@ export default [
       route('utilisateurs', 'routes/admin/users.tsx'),
       route('devis', 'routes/admin/quotes.tsx'),
       route('devis/:id', 'routes/admin/quote.tsx'),
+      route('factures', 'routes/admin/invoices.tsx'),
+      route('factures/:id', 'routes/admin/invoice.tsx'),
       route('catalogue', 'routes/admin/catalogue.tsx'),
       route('planning', 'routes/admin/planning.tsx'),
       route('tickets', 'routes/admin/tickets.tsx'),
       route('tickets/:id', 'routes/admin/ticket.tsx'),
-      ...placeholders('admin', ['clients', 'prospects', 'contenu', 'parametres']),
+      route('clients', 'routes/admin/clients.tsx'),
+      route('clients/:kind/:id', 'routes/admin/client.tsx'),
+      route('prospects', 'routes/admin/leads.tsx'),
+      route('contenu', 'routes/admin/content.tsx'),
+      route('parametres', 'routes/admin/settings.tsx'),
       profile('admin'),
     ]),
   ]),

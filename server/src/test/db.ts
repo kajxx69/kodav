@@ -16,3 +16,12 @@ export async function stopTestDatabase() {
   await disconnectDatabase();
   await mongo?.stop();
 }
+
+/** Attend qu'une condition soit vraie (tâches en arrière-plan comme l'envoi d'emails). */
+export async function waitUntil(check: () => boolean, timeoutMs = 3000) {
+  const start = Date.now();
+  while (!check()) {
+    if (Date.now() - start > timeoutMs) throw new Error('Condition non remplie à temps');
+    await new Promise((r) => setTimeout(r, 25));
+  }
+}

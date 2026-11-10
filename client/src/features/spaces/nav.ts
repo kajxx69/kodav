@@ -10,6 +10,7 @@ import {
   Monitor,
   Newspaper,
   Package,
+  ReceiptText,
   Settings,
   UserRound,
   Users,
@@ -36,6 +37,7 @@ export const technicianNav: SpaceNavItem[] = [
 export const adminNav: SpaceNavItem[] = [
   { to: '/admin', label: 'Tableau de bord', icon: LayoutDashboard, end: true },
   { to: '/admin/devis', label: 'Devis', icon: FileText },
+  { to: '/admin/factures', label: 'Factures', icon: ReceiptText },
   { to: '/admin/planning', label: 'Planning', icon: CalendarDays },
   { to: '/admin/tickets', label: 'Tickets', icon: LifeBuoy },
   { to: '/admin/clients', label: 'Clients', icon: Building2 },

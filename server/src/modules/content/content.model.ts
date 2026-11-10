@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, type Types } from 'mongoose';
 import { CLIENT_PROFILES, type ClientProfile } from '@kodav/shared';
 import { baseSchemaOptions } from '../../lib/mongoose.js';
 
@@ -34,6 +34,8 @@ export interface TestimonialDoc {
   status: (typeof TESTIMONIAL_STATUSES)[number];
   consentAt?: Date;
   order: number;
+  /** Avis déposé par un client depuis son espace (sinon saisi par l'équipe). */
+  client?: Types.ObjectId | null;
 }
 
 const testimonialSchema = new Schema<TestimonialDoc>(
@@ -48,6 +50,7 @@ const testimonialSchema = new Schema<TestimonialDoc>(
     status: { type: String, enum: TESTIMONIAL_STATUSES, default: 'en_attente', index: true },
     consentAt: Date,
     order: { type: Number, default: 0 },
+    client: { type: Schema.Types.ObjectId, ref: 'User', default: null },
   },
   baseSchemaOptions,
 );

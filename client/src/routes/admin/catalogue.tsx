@@ -11,7 +11,7 @@ import {
   type InterventionMode,
 } from '@kodav/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil } from 'lucide-react';
+import { Pencil, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import type { z } from 'zod';
@@ -26,10 +26,21 @@ import {
   Modal,
   SelectField,
   Skeleton,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
   TextField,
   toast,
 } from '~/components/ui';
 import { apiRequest } from '~/lib/api';
+import {
+  CategoriesPanel,
+  PlansPanel,
+  PricingRulesPanel,
+  type CategoryRow,
+} from '~/features/catalog/CatalogSettings';
+import { ServiceEditor } from '~/features/catalog/ServiceEditor';
 import { applyServerErrors } from '~/lib/forms';
 import { priceLabel, rangeLabel } from '~/lib/format';
 import { queries } from '~/lib/queries';
@@ -252,6 +263,11 @@ function PricingPreview({ services }: { services: AdminService[] }) {
 
 export default function AdminCatalogue() {
   const [editing, setEditing] = useState<AdminService | null>(null);
+  const [full, setFull] = useState<AdminService | 'new' | null>(null);
+  const categories = useQuery({
+    queryKey: ['private', 'admin', 'categories'],
+    queryFn: () => apiRequest<CategoryRow[]>('/admin/categories'),
+  });
   const query = useQuery({
     queryKey: SERVICES_KEY,
     queryFn: () => apiRequest<AdminService[]>('/admin/services'),
@@ -266,59 +282,116 @@ export default function AdminCatalogue() {
     <>
       <SpaceHeader
         title="Catalogue"
-        lead="Tarifs, visibilité et mise en avant des services. La création de services et l’édition des options arrivent avec le back-office complet."
+        lead="Pôles, services et options, règles tarifaires et formules de maintenance. Le site et le configurateur de devis se mettent à jour aussitôt."
       />
-      {placeholders > 0 && (
-        <Alert variant="warning" title={`${placeholders} services avec un tarif d’exemple`}>
-          Remplacez-les par vos tarifs réels : le badge « Exemple » disparaît à l’enregistrement.
-        </Alert>
-      )}
-      {query.isPending ? (
-        <Skeleton className="h-96" />
-      ) : query.isError ? (
-        <ErrorState message={query.error.message} onRetry={() => void query.refetch()} />
-      ) : (
-        <>
-          {[...groups].map(([pole, services]) => (
-            <Card key={pole} className="flex flex-col gap-2 p-0">
-              <h2 className="px-5 pt-5 text-h4">{pole}</h2>
-              <ul className="divide-y divide-line">
-                {services.map((s) => (
-                  <li
-                    key={s.id}
-                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
-                  >
-                    <span className="flex flex-col gap-1">
-                      <span className="flex flex-wrap items-center gap-2 text-label text-ink">
-                        {s.name}
-                        {s.isPlaceholderPrice && <Badge variant="warning">Exemple</Badge>}
-                        {!s.isActive && <Badge>Masqué</Badge>}
-                        {s.featured && <Badge variant="info">Mis en avant</Badge>}
-                      </span>
-                      <span className="text-body-sm text-ink-muted">
-                        {MODE_LABELS[s.pricingMode]} ·{' '}
-                        {s.pricingMode === 'sur_devis'
-                          ? 'Sur devis'
-                          : `${rangeLabel({ min: s.priceMin ?? 0, max: s.priceMax ?? 0 })}${s.pricingMode === 'par_unite' ? ` / ${s.unitLabel}` : ''}`}
-                      </span>
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      aria-label={`Modifier le tarif de ${s.name}`}
-                      onClick={() => setEditing(s)}
-                    >
-                      <Pencil aria-hidden />
-                      Modifier
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          ))}
-          <PricingPreview services={query.data} />
-        </>
-      )}
+      <Tabs defaultValue="services">
+        <TabsList aria-label="Catalogue">
+          <TabsTrigger value="services">Services</TabsTrigger>
+          <TabsTrigger value="poles">Pôles</TabsTrigger>
+          <TabsTrigger value="regles">Règles tarifaires</TabsTrigger>
+          <TabsTrigger value="formules">Formules</TabsTrigger>
+        </TabsList>
+        <TabsContent value="services" className="flex flex-col gap-6">
+          <Button
+            variant="secondary"
+            className="self-start"
+            disabled={!categories.data}
+            onClick={() => setFull('new')}
+          >
+            <Plus aria-hidden />
+            Nouveau service
+          </Button>
+          {placeholders > 0 && (
+            <Alert variant="warning" title={`${placeholders} services avec un tarif d’exemple`}>
+              Remplacez-les par vos tarifs réels : le badge « Exemple » disparaît à
+              l’enregistrement.
+            </Alert>
+          )}
+          {query.isPending ? (
+            <Skeleton className="h-96" />
+          ) : query.isError ? (
+            <ErrorState message={query.error.message} onRetry={() => void query.refetch()} />
+          ) : (
+            <>
+              {[...groups].map(([pole, services]) => (
+                <Card key={pole} className="flex flex-col gap-2 p-0">
+                  <h2 className="px-5 pt-5 text-h4">{pole}</h2>
+                  <ul className="divide-y divide-line">
+                    {services.map((s) => (
+                      <li
+                        key={s.id}
+                        className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
+                      >
+                        <span className="flex flex-col gap-1">
+                          <span className="flex flex-wrap items-center gap-2 text-label text-ink">
+                            {s.name}
+                            {s.isPlaceholderPrice && <Badge variant="warning">Exemple</Badge>}
+                            {!s.isActive && <Badge>Masqué</Badge>}
+                            {s.featured && <Badge variant="info">Mis en avant</Badge>}
+                          </span>
+                          <span className="text-body-sm text-ink-muted">
+                            {MODE_LABELS[s.pricingMode]} ·{' '}
+                            {s.pricingMode === 'sur_devis'
+                              ? 'Sur devis'
+                              : `${rangeLabel({ min: s.priceMin ?? 0, max: s.priceMax ?? 0 })}${s.pricingMode === 'par_unite' ? ` / ${s.unitLabel}` : ''}`}
+                          </span>
+                        </span>
+                        <span className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            aria-label={`Modifier le tarif de ${s.name}`}
+                            onClick={() => setEditing(s)}
+                          >
+                            <Pencil aria-hidden />
+                            Tarif
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label={`Modifier le service ${s.name} en détail`}
+                            disabled={!categories.data}
+                            onClick={() => setFull(s)}
+                          >
+                            Tout modifier
+                          </Button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Card>
+              ))}
+              <PricingPreview services={query.data} />
+            </>
+          )}
+        </TabsContent>
+        <TabsContent value="poles">
+          {categories.data ? (
+            <CategoriesPanel categories={categories.data} />
+          ) : (
+            <Skeleton className="h-48" />
+          )}
+        </TabsContent>
+        <TabsContent value="regles">
+          <PricingRulesPanel />
+        </TabsContent>
+        <TabsContent value="formules">
+          <PlansPanel />
+        </TabsContent>
+      </Tabs>
+      <Modal
+        open={full !== null}
+        onOpenChange={(open) => !open && setFull(null)}
+        title={full === 'new' ? 'Nouveau service' : full ? full.name : 'Service'}
+      >
+        {full !== null && categories.data && (
+          <ServiceEditor
+            service={full === 'new' ? null : full}
+            categories={categories.data}
+            onDone={() => setFull(null)}
+          />
+        )}
+      </Modal>
       <Modal
         open={Boolean(editing)}
         onOpenChange={(open) => !open && setEditing(null)}

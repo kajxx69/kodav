@@ -341,6 +341,15 @@ export async function bookAppointment(input: BookInput, user: RequestUser | null
       sendTemplatedMail({
         to: appointment.contact.email,
         subject: `Rendez-vous ${appointment.reference} enregistré`,
+        template: {
+          key: 'appointment_confirmed',
+          vars: {
+            prenom: appointment.contact.name.split(' ')[0] ?? '',
+            reference: appointment.reference,
+            date: when(appointment.start),
+            mode: INTERVENTION_MODE_LABELS[appointment.mode].toLowerCase(),
+          },
+        },
         greeting: `Bonjour ${appointment.contact.name.split(' ')[0]},`,
         paragraphs: [
           `Votre demande d’intervention ${INTERVENTION_MODE_LABELS[appointment.mode].toLowerCase()} est enregistrée pour le ${when(appointment.start)}.`,
@@ -486,6 +495,15 @@ export async function sendReminders(now = new Date()) {
       sendTemplatedMail({
         to: a.contact.email,
         subject: `Rappel : intervention demain (${a.reference})`,
+        template: {
+          key: 'appointment_reminder',
+          vars: {
+            prenom: a.contact.name.split(' ')[0] ?? '',
+            reference: a.reference,
+            date: when(a.start),
+            mode: INTERVENTION_MODE_LABELS[a.mode].toLowerCase(),
+          },
+        },
         greeting: `Bonjour ${a.contact.name.split(' ')[0]},`,
         paragraphs: [
           `Nous vous rappelons votre intervention ${INTERVENTION_MODE_LABELS[a.mode].toLowerCase()} prévue le ${when(a.start)}.`,

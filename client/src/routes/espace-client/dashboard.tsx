@@ -8,6 +8,7 @@ import {
   type QuoteDto,
 } from '@kodav/shared';
 import { formatSlot } from '~/features/appointments/SlotPicker';
+import { SubscriptionCard, TestimonialPrompt } from '~/features/spaces/ClientExtras';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarClock, FileText, LifeBuoy, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -154,6 +155,7 @@ export default function ClientDashboard() {
           Vous pourrez suivre ici vos devis, vos rendez-vous et vos demandes de support.
         </Alert>
       )}
+      <SubscriptionCard />
       <div className="grid gap-4 md:grid-cols-3">
         <SummaryCard
           icon={FileText}
@@ -177,6 +179,7 @@ export default function ClientDashboard() {
           linkLabel="Accéder au support"
         />
       </div>
+      <TestimonialPrompt />
     </>
   );
 }

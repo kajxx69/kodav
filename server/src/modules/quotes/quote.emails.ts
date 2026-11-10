@@ -27,6 +27,14 @@ export async function sendQuoteReceivedEmail(quote: QuoteDto) {
   await sendTemplatedMail({
     to: quote.contact.email,
     subject: `Votre demande de devis ${quote.reference}`,
+    template: {
+      key: 'quote_received',
+      vars: {
+        prenom: firstName(quote.contact.name),
+        reference: quote.reference,
+        estimation: rangeText(e.total.min, e.total.max),
+      },
+    },
     greeting: `Bonjour ${firstName(quote.contact.name)},`,
     paragraphs: [
       `Nous avons bien reçu votre demande (référence ${quote.reference}). Vous trouverez en pièce jointe le récapitulatif et l’estimation calculée en ligne : ${rangeText(e.total.min, e.total.max)}${e.hasOnQuoteItems ? ', hors prestations sur devis' : ''}.`,
@@ -61,6 +69,20 @@ export async function sendQuoteSentEmail(quote: QuoteDto, actionToken: string, m
   await sendTemplatedMail({
     to: quote.contact.email,
     subject: `Votre devis ${quote.reference}`,
+    template: {
+      key: 'quote_sent',
+      vars: {
+        prenom: firstName(quote.contact.name),
+        reference: quote.reference,
+        montant: formatFcfa(quote.finalTotals?.total ?? 0),
+        validite: quote.validUntil
+          ? new Intl.DateTimeFormat('fr-FR', {
+              dateStyle: 'long',
+              timeZone: 'Africa/Abidjan',
+            }).format(new Date(quote.validUntil))
+          : '',
+      },
+    },
     greeting: `Bonjour ${firstName(quote.contact.name)},`,
     paragraphs: [
       `Veuillez trouver ci-joint notre devis ${quote.reference} d’un montant de ${formatFcfa(quote.finalTotals?.total ?? 0)}.`,

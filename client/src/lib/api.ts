@@ -146,3 +146,27 @@ export async function fetchProtectedBlobUrl(path: string) {
   if (!res.ok) throw new ApiRequestError(res.status, 'FILE_ERROR', 'Image indisponible');
   return URL.createObjectURL(await res.blob());
 }
+
+/** Téléchargement protégé (export CSV) : jeton joint, fichier enregistré par le navigateur. */
+export async function downloadProtectedFile(path: string) {
+  const load = (token: string | null) =>
+    fetch(`${API_URL}${path}`, {
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  let res = await load(useAuthStore.getState().accessToken);
+  if (res.status === 401) {
+    const session = await refreshSession();
+    if (session) res = await load(session.accessToken);
+  }
+  if (!res.ok) throw new ApiRequestError(res.status, 'FILE_ERROR', 'Téléchargement impossible');
+  const name =
+    /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ??
+    `kodav-${path.split('/').pop() ?? 'export.csv'}`;
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}

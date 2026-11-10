@@ -10,6 +10,17 @@ import { AppError } from './lib/http.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.js';
 import { mongoSanitize } from './middlewares/sanitize.js';
 import { adminAppointmentsRouter } from './modules/admin/admin.appointments.routes.js';
+import { backofficeRouter } from './modules/admin/admin.backoffice.routes.js';
+import {
+  adminContentRouter,
+  clientTestimonialsRouter,
+} from './modules/admin/admin.content.routes.js';
+import {
+  adminInvoicesRouter,
+  documentsRouter,
+  invoicesRouter,
+  subscriptionsRouter,
+} from './modules/billing/billing.routes.js';
 import { adminCatalogRouter } from './modules/admin/admin.catalog.routes.js';
 import { adminQuotesRouter } from './modules/admin/admin.quotes.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
@@ -53,6 +64,8 @@ export function createApp() {
         callback(new AppError(403, 'CORS_FORBIDDEN', 'Origine non autorisée'));
       },
       credentials: true,
+      // Nom des fichiers téléchargés (exports CSV) lisible par le front.
+      exposedHeaders: ['Content-Disposition'],
     }),
   );
   app.use(compression());
@@ -67,6 +80,8 @@ export function createApp() {
   api.use('/settings', settingsRouter);
   api.use('/catalog', catalogRouter);
   api.use('/plans', plansRouter);
+  // Avant le routeur public (mis en cache) : dépôt d'un avis par un client connecté.
+  api.use('/content/testimonials', clientTestimonialsRouter);
   api.use('/content', contentRouter);
   api.use('/contact', contactRouter);
   api.use('/auth', authRouter);
@@ -83,6 +98,12 @@ export function createApp() {
   api.use('/notifications', notificationsRouter);
   api.use('/admin/tickets', staffTicketsRouter);
   api.use('/admin/assets', adminAssetsRouter);
+  api.use('/invoices', invoicesRouter);
+  api.use('/documents', documentsRouter);
+  api.use('/subscriptions', subscriptionsRouter);
+  api.use('/admin/invoices', adminInvoicesRouter);
+  api.use('/admin/content', adminContentRouter);
+  api.use('/admin', backofficeRouter);
   api.use('/admin/quotes', adminQuotesRouter);
   api.use('/admin', adminAppointmentsRouter);
   api.use('/admin', adminCatalogRouter);

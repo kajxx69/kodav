@@ -19,6 +19,8 @@ const userSchema = new Schema(
     /** Les access tokens émis avant cette date sont refusés (changement de mot de passe). */
     passwordChangedAt: { type: Date, default: null },
     notificationPrefs: { email: { type: Boolean, default: true } },
+    /** Notes internes de l'équipe sur un client particulier, jamais renvoyées au client. */
+    adminNotes: { type: String, default: '', select: false },
   },
   {
     ...baseSchemaOptions,

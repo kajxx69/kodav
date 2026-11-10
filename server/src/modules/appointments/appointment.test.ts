@@ -8,7 +8,7 @@ import { hashPassword } from '../../lib/crypto.js';
 import { testOutbox } from '../../lib/mailer.js';
 import { closeSocket, initSocket } from '../../lib/socket.js';
 import { seedDatabase } from '../../seed/seed.js';
-import { startTestDatabase, stopTestDatabase } from '../../test/db.js';
+import { startTestDatabase, stopTestDatabase, waitUntil } from '../../test/db.js';
 import { User } from '../users/user.model.js';
 import { Appointment } from './appointment.model.js';
 import { canJoinAppointment, sendReminders } from './appointment.service.js';
@@ -97,8 +97,7 @@ describe('réservation et suivi', () => {
 
     const next = await request(app).get('/api/v1/availability/next');
     expect(next.body.data.start).not.toBe(start);
-    await new Promise((r) => setTimeout(r, 100));
-    expect(testOutbox.some((m) => m.subject.includes(reference))).toBe(true);
+    await waitUntil(() => testOutbox.some((m) => m.subject.includes(reference)));
   });
 
   it('refuse un créneau inventé et exige la commune sur site', async () => {

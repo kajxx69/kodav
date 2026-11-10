@@ -1,4 +1,5 @@
 import nodemailer, { type Transporter } from 'nodemailer';
+import type { EmailTemplateKey } from '@kodav/shared';
 import { env, isProd, isTest } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { getPublicSettings } from '../modules/settings/settings.service.js';
@@ -64,10 +65,37 @@ type TemplateInput = {
   action?: { label: string; url: string };
   footnote?: string;
   attachments?: Mail['attachments'];
+  /** Modèle personnalisable dans l'admin : remplace l'objet et le texte s'il est renseigné. */
+  template?: { key: EmailTemplateKey; vars: Record<string, string> };
 };
 
+const fill = (text: string, vars: Record<string, string>) =>
+  text.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, name: string) => vars[name] ?? '');
+
+/** Applique le modèle personnalisé de l'admin, s'il existe et n'est pas vide. */
+async function applyTemplate(input: TemplateInput): Promise<TemplateInput> {
+  if (!input.template) return input;
+  const { Settings, SETTINGS_KEY } = await import('../modules/settings/settings.model.js');
+  const doc = await Settings.findOne({ key: SETTINGS_KEY }, { emailTemplates: 1 }).lean();
+  const custom = doc?.emailTemplates?.find((t) => t.key === input.template!.key);
+  if (!custom) return input;
+  const { vars } = input.template;
+  const paragraphs = custom.body.trim()
+    ? fill(custom.body, vars)
+        .split(/\n\s*\n/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+    : input.paragraphs;
+  return {
+    ...input,
+    subject: custom.subject.trim() ? fill(custom.subject, vars) : input.subject,
+    paragraphs,
+  };
+}
+
 /** Gabarit commun : texte brut + HTML sobre aux couleurs de la marque. */
-export async function sendTemplatedMail(input: TemplateInput) {
+export async function sendTemplatedMail(raw: TemplateInput) {
+  const input = await applyTemplate(raw);
   const { brand } = await getPublicSettings();
   const lines = [input.greeting, '', ...input.paragraphs.flatMap((p) => [p, ''])];
   if (input.action) lines.push(`${input.action.label} : ${input.action.url}`, '');

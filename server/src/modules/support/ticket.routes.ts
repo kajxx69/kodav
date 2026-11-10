@@ -128,7 +128,10 @@ ticketsRouter.post(
       if (!owned) throw AppError.badRequest('Équipement introuvable dans votre parc');
     }
     const now = new Date();
-    const sla = await slaFor(input.priority, now);
+    const sla = await slaFor(input.priority, now, {
+      organization: user.organization,
+      client: user._id,
+    });
     const ticket = new Ticket({
       reference: await nextReference('TCK', now),
       client: user._id,
@@ -266,7 +269,10 @@ staffTicketsRouter.patch('/:id', async (req, res) => {
   }
   if (input.priority && input.priority !== ticket.priority) {
     if (!isAdmin) throw AppError.forbidden('Seul un administrateur peut changer la priorité');
-    const sla = await slaFor(input.priority, ticket.createdAt);
+    const sla = await slaFor(input.priority, ticket.createdAt, {
+      organization: ticket.organization,
+      client: ticket.client,
+    });
     ticket.priority = input.priority;
     ticket.slaHours = sla.hours;
     ticket.slaDueAt = sla.dueAt;

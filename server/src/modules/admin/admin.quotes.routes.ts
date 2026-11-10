@@ -7,6 +7,7 @@ import {
 } from '@kodav/shared';
 import { Router } from 'express';
 import { trusted, type QueryFilter } from 'mongoose';
+import { audit } from '../../lib/audit.js';
 import { AppError, sendOk } from '../../lib/http.js';
 import { authenticate, requireRole } from '../../middlewares/auth.js';
 import { getPublicSettings } from '../settings/settings.service.js';
@@ -74,12 +75,20 @@ adminQuotesRouter.patch('/:id', async (req, res) => {
   const input = adminQuoteUpdateSchema.parse(req.body);
   applyAdminUpdate(quote, input);
   await quote.save();
+  await audit(
+    req,
+    'quote.update',
+    'Quote',
+    quote._id,
+    `${quote.reference} : ${quote.finalTotals?.total ?? 0} FCFA`,
+  );
   sendOk(res, await adminDto(quote._id));
 });
 
 adminQuotesRouter.post('/:id/send', async (req, res) => {
   const quote = await findQuote(req.params.id);
   await sendQuote(quote, req.user!, adminQuoteSendSchema.parse(req.body ?? {}));
+  await audit(req, 'quote.send', 'Quote', quote._id, quote.reference ?? '');
   sendOk(res, await adminDto(quote._id));
 });
 

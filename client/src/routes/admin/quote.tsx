@@ -4,12 +4,13 @@ import {
   formatFcfa,
   type AdminQuoteDto,
   type AdminQuoteUpdateInput,
+  type InvoiceDto,
 } from '@kodav/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, FileDown, Plus, Send, Trash2 } from 'lucide-react';
+import { ArrowLeft, FileDown, Plus, ReceiptText, Send, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import type { z } from 'zod';
 import { SpaceHeader } from '~/components/app/AppShell';
 import {
@@ -302,6 +303,36 @@ function SendForm({
   );
 }
 
+/** Facture d'un devis accepté (une seule par devis). */
+function InvoiceButton({ quoteId }: { quoteId: string }) {
+  const navigate = useNavigate();
+  const create = useMutation({
+    mutationFn: () =>
+      apiRequest<InvoiceDto>(`/admin/invoices/from-quote/${quoteId}`, {
+        method: 'POST',
+        json: { dueDays: 15 },
+      }),
+    onSuccess: (invoice) => {
+      toast('Facture émise', {
+        description: `${invoice.reference} envoyée au client.`,
+        variant: 'success',
+      });
+      navigate(`/admin/factures/${invoice.id}`);
+    },
+    onError: (err) =>
+      toast('Facturation impossible', {
+        description: err.message,
+        variant: 'error',
+      }),
+  });
+  return (
+    <Button variant="secondary" loading={create.isPending} onClick={() => create.mutate()}>
+      <ReceiptText aria-hidden />
+      Facturer
+    </Button>
+  );
+}
+
 export default function AdminQuote() {
   const { id = '' } = useParams();
   const query = useQuery({
@@ -340,17 +371,20 @@ export default function AdminQuote() {
         title={`Devis ${quote.reference}`}
         lead={<QuoteStatusBadge status={quote.status} />}
         actions={
-          <Button
-            variant="outline"
-            onClick={() =>
-              openProtectedFile(`/admin/quotes/${quote.id}/pdf`).catch((err: Error) =>
-                toast('PDF indisponible', { description: err.message, variant: 'error' }),
-              )
-            }
-          >
-            <FileDown aria-hidden />
-            Aperçu PDF
-          </Button>
+          <>
+            {quote.status === 'accepte' && <InvoiceButton quoteId={quote.id} />}
+            <Button
+              variant="outline"
+              onClick={() =>
+                openProtectedFile(`/admin/quotes/${quote.id}/pdf`).catch((err: Error) =>
+                  toast('PDF indisponible', { description: err.message, variant: 'error' }),
+                )
+              }
+            >
+              <FileDown aria-hidden />
+              Aperçu PDF
+            </Button>
+          </>
         }
       />
       {quote.estimate.isPlaceholderPrice && !closed && (

@@ -22,6 +22,7 @@ export interface LeadDoc {
   payload?: unknown;
   status: LeadStatus;
   assignee?: Types.ObjectId;
+  notes?: string;
   consentAt: Date;
   ip?: string;
 }
@@ -40,6 +41,7 @@ const leadSchema = new Schema<LeadDoc>(
     payload: Schema.Types.Mixed,
     status: { type: String, enum: LEAD_STATUSES, default: 'nouveau' },
     assignee: { type: Schema.Types.ObjectId, ref: 'User' },
+    notes: { type: String, default: '' },
     consentAt: { type: Date, required: true },
     ip: String,
   },

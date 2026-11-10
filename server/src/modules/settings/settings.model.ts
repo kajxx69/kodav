@@ -11,6 +11,7 @@ export interface SettingsDoc {
   quote: { validityDays: number };
   invoice: { taxRate: number; legalMentions: string; bankDetails: string };
   features: { turnstile: boolean };
+  emailTemplates: { key: string; subject: string; body: string }[];
 }
 
 const settingsSchema = new Schema<SettingsDoc>(
@@ -37,6 +38,7 @@ const settingsSchema = new Schema<SettingsDoc>(
       bankDetails: { type: String, default: '' },
     },
     features: { turnstile: { type: Boolean, default: false } },
+    emailTemplates: [{ _id: false, key: String, subject: String, body: String }],
   },
   baseSchemaOptions,
 );

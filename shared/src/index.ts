@@ -9,6 +9,7 @@ export * from './format.js';
 export * from './schemas/api.js';
 export * from './schemas/appointment.js';
 export * from './schemas/auth.js';
+export * from './schemas/backoffice.js';
 export * from './schemas/catalog.js';
 export * from './schemas/contact.js';
 export * from './schemas/content.js';

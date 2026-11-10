@@ -122,3 +122,19 @@
     height: 0;
   }
 }
+
+/* Couleurs des graphiques (validées : séparation daltonisme, contraste sur la surface). */
+:root {
+  --chart-1: #2a78d6;
+  --chart-2: #eb6834;
+}
+[data-theme='dark'] {
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --chart-1: #3987e5;
+    --chart-2: #d95926;
+  }
+}

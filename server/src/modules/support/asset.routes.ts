@@ -181,6 +181,7 @@ adminAssetsRouter.post('/:id/reveal-key', async (req, res) => {
     action: 'license.reveal_key',
     entity: 'Asset',
     entityId: asset._id,
+    summary: `Clé de ${asset.license.product} (${asset.name})`,
     ip: req.ip,
     userAgent: req.get('user-agent')?.slice(0, 200),
   });

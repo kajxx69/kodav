@@ -4,7 +4,7 @@ import { createApp } from '../../app.js';
 import { hashPassword } from '../../lib/crypto.js';
 import { testOutbox } from '../../lib/mailer.js';
 import { seedDatabase } from '../../seed/seed.js';
-import { startTestDatabase, stopTestDatabase } from '../../test/db.js';
+import { startTestDatabase, stopTestDatabase, waitUntil } from '../../test/db.js';
 import { Service } from '../catalog/catalog.model.js';
 import { Lead } from '../leads/lead.model.js';
 import { User } from '../users/user.model.js';
@@ -121,7 +121,7 @@ describe('demande de devis', () => {
     expect(await Lead.countDocuments({ source: 'devis_visiteur' })).toBe(1);
 
     // Les emails partent en arrière-plan.
-    await new Promise((r) => setTimeout(r, 300));
+    await waitUntil(() => testOutbox.length >= 2);
     const confirmation = testOutbox.find((m) => m.to === 'awa@example.ci');
     expect(confirmation?.attachments?.[0]?.filename).toBe(`${q.reference}.pdf`);
     expect(confirmation?.attachments?.[0]?.content.subarray(0, 4).toString()).toBe('%PDF');

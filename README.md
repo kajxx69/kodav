@@ -66,11 +66,22 @@ Sessions : jeton d'accès de 15 min gardé en mémoire côté navigateur, refres
 ## Support, parc et notifications
 
 - **Tickets** (`TCK-AAAA-NNNN`) : ouvert → en cours → en attente du client → résolu → fermé. Le client note la résolution (1 à 5), ce qui ferme le ticket ; sans note, il est fermé automatiquement 7 jours après sa résolution.
-- **Délai cible** : en heures ouvrées selon la priorité (calculé sur les horaires d'intervention et les jours fermés). Les délais sans contrat sont des valeurs d'exemple (`DEFAULT_SLA_HOURS`) ; ceux des formules de maintenance seront appliqués avec les abonnements (phase 6).
+- **Délai cible** : en heures ouvrées selon la priorité (calculé sur les horaires d'intervention et les jours fermés). Le délai vient de la formule de maintenance active du client ; sans contrat, ce sont des valeurs d'exemple (`DEFAULT_SLA_HOURS`).
 - **Conversation en temps réel** : messages, « en train d'écrire », pièces jointes (JPEG, PNG, PDF, 5 Mo, 3 par message, type réel vérifié). Les notes internes ne sont diffusées qu'à l'équipe. Les messages sont en texte brut : toute balise HTML est retirée.
 - **Parc informatique** : par organisation (ou par client particulier). Pour une licence, seuls les 5 derniers caractères de la clé sont gardés, sauf si le client la confie : elle est alors chiffrée (AES-256-GCM, `ENCRYPTION_KEY`) et seul un admin peut la révéler, action journalisée (`AuditLog`).
 - **Alertes de licences** : notification et email à 30, 7 puis 0 jour de l'expiration, une seule fois par seuil (chaque matin à 7 h).
 - **Notifications** : cloche dans les trois espaces, en direct, conservées 90 jours.
+
+## Factures, abonnements et back-office
+
+- **Factures** (`FAC-AAAA-NNNN`) : créées depuis un devis accepté (une seule par devis), lignes et montants repris tels quels, TVA définie dans les paramètres (0 % par défaut). Envoi par email avec le PDF. Règlements partiels ou complets saisis par l'admin (espèces, virement, chèque, Mobile Money) ; une facture réglée en partie ne peut plus être annulée. Le client retrouve devis, rapports signés et factures dans « Mes documents ».
+- **Paiement en ligne** : non branché. `server/src/payments/PaymentProvider.ts` définit l'interface d'un futur prestataire Mobile Money.
+- **Abonnements** : une formule active par client (organisation ou particulier), affectée depuis la fiche client 360° ; le prix est figé à la souscription. Le délai cible des tickets suit la formule.
+- **Back-office** : tableau de bord (indicateurs et graphiques sur 30 jours, 90 jours ou 12 mois), prospects, clients 360° (devis, interventions, tickets, parc, factures, notes internes), planning semaine en glisser-déposer, catalogue complet (services et options, pôles, règles tarifaires, formules), contenu (avis à modérer, réalisations, FAQ), utilisateurs (invitation par email, désactivation qui coupe les sessions) et paramètres.
+- **Avis clients** : déposés depuis l'espace client, publiés seulement après validation. Aucun avis n'est inventé.
+- **Modèles d'emails** : objet et texte modifiables dans Paramètres, variables `{{prenom}}`, `{{reference}}`… ; sans modèle, le texte par défaut s'applique.
+- **Journal d'audit** : chaque modification sensible (prix, devis, rendez-vous, utilisateurs, paramètres, révélation de clé) est tracée avec son auteur.
+- **Exports CSV** : prospects, clients, devis, factures, interventions, tickets ; séparateur point-virgule, compatible Excel.
 
 ## Charte graphique
 
