@@ -9,6 +9,7 @@ import { AppError } from './http.js';
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const ATTACHMENT_TYPES = [...IMAGE_TYPES, 'application/pdf'];
 
 /** Fichiers gardés en mémoire le temps de vérifier leur contenu réel. */
 export const imageUpload = multer({
@@ -40,6 +41,18 @@ export async function assertImage(buffer: Buffer) {
   return type.mime;
 }
 
+/** Pièce jointe de ticket : photo ou PDF. */
+export async function assertAttachment(buffer: Buffer) {
+  const type = await fileTypeFromBuffer(buffer);
+  if (!type || !ATTACHMENT_TYPES.includes(type.mime)) {
+    throw AppError.badRequest('Format non accepté : image JPEG, PNG ou document PDF');
+  }
+  return type.mime;
+}
+
+/** Les PDF sont des ressources « raw » chez Cloudinary, les photos des « image ». */
+const resourceType = (folder: string) => (folder === 'tickets' ? 'raw' : 'image');
+
 /** Enregistre un fichier sous un nom aléatoire ; renvoie son identifiant. */
 export async function saveFile(buffer: Buffer, folder: string): Promise<string> {
   const publicId = `${folder}/${randomBytes(16).toString('hex')}`;
@@ -48,7 +61,11 @@ export async function saveFile(buffer: Buffer, folder: string): Promise<string> 
       cloudinary.uploader
         .upload_stream(
           // Ressource privée : accessible uniquement par une URL signée, via l'API.
-          { public_id: `kodav/${publicId}`, type: 'authenticated', resource_type: 'image' },
+          {
+            public_id: `kodav/${publicId}`,
+            type: 'authenticated',
+            resource_type: resourceType(folder),
+          },
           (err) => (err ? reject(err) : resolve()),
         )
         .end(buffer);
@@ -66,7 +83,7 @@ export async function readFile(publicId: string): Promise<Buffer> {
     const url = cloudinary.url(`kodav/${publicId}`, {
       type: 'authenticated',
       sign_url: true,
-      resource_type: 'image',
+      resource_type: resourceType(publicId.split('/')[0]!),
     });
     const res = await fetch(url);
     if (!res.ok) throw AppError.notFound('Fichier introuvable');
@@ -82,7 +99,10 @@ export async function readFile(publicId: string): Promise<Buffer> {
 export async function deleteFile(publicId: string) {
   if (!ID_REGEX.test(publicId)) return;
   if (useCloudinary) {
-    await cloudinary.uploader.destroy(`kodav/${publicId}`, { type: 'authenticated' });
+    await cloudinary.uploader.destroy(`kodav/${publicId}`, {
+      type: 'authenticated',
+      resource_type: resourceType(publicId.split('/')[0]!),
+    });
   } else {
     await fs.rm(path.join(localDir, publicId), { force: true });
   }

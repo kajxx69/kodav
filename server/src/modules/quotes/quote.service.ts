@@ -193,6 +193,15 @@ export async function sendQuote(
 
   const dto = await loadQuoteDto(quote._id);
   await sendQuoteSentEmail(dto, token, options.message);
+  if (quote.client) {
+    const { notify } = await import('../notifications/notification.service.js');
+    await notify([quote.client], {
+      type: 'quote_sent',
+      title: `Votre devis ${dto.reference} est prêt`,
+      body: `Montant : ${new Intl.NumberFormat('fr-FR').format(dto.finalTotals?.total ?? 0)} FCFA`,
+      link: `/espace-client/devis/${dto.id}`,
+    });
+  }
   return dto;
 }
 

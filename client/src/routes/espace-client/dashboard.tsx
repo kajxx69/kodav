@@ -1,6 +1,8 @@
 import {
   APPOINTMENT_STATUS_LABELS,
   QUOTE_STATUS_LABELS,
+  TICKET_STATUS_LABELS,
+  type TicketDto,
   type AppointmentDto,
   type Paginated,
   type QuoteDto,
@@ -96,6 +98,35 @@ function NextAppointment() {
   );
 }
 
+function OpenTickets() {
+  const query = useQuery({
+    queryKey: ['private', 'tickets', 'ouverts'],
+    queryFn: () => apiRequest<Paginated<TicketDto>>('/tickets?open=true'),
+  });
+  if (query.isPending) return <Skeleton className="h-12" />;
+  if (query.isError) return <p>Impossible de charger vos demandes.</p>;
+  if (!query.data.items.length) return <p>Aucune demande de support en cours.</p>;
+  return (
+    <ul className="flex flex-col gap-2">
+      {query.data.items.slice(0, 3).map((t) => (
+        <li key={t.id}>
+          <Link
+            to={`/espace-client/tickets/${t.id}`}
+            className="flex justify-between gap-2 hover:text-ink"
+          >
+            <span className="truncate text-ink">{t.subject}</span>
+            <span className="shrink-0">
+              {t.unread
+                ? `${t.unread} nouveau${t.unread > 1 ? 'x' : ''}`
+                : TICKET_STATUS_LABELS[t.status]}
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function ClientDashboard() {
   const user = useAuthStore((s) => s.user);
   const welcome = (useLocation().state as { welcome?: boolean } | null)?.welcome;
@@ -141,7 +172,7 @@ export default function ClientDashboard() {
         <SummaryCard
           icon={LifeBuoy}
           title="Tickets ouverts"
-          empty="Aucune demande de support en cours."
+          empty={<OpenTickets />}
           to="/espace-client/tickets"
           linkLabel="Accéder au support"
         />

@@ -1,4 +1,4 @@
-import { createHmac, randomBytes } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'node:crypto';
 import argon2 from 'argon2';
 import { env } from '../config/env.js';
 
@@ -32,4 +32,20 @@ let dummyHash: Promise<string> | undefined;
 export async function burnPasswordCheck(password: string) {
   dummyHash ??= hashPassword(generateToken());
   await verifyPassword(await dummyHash, password);
+}
+
+/** Chiffrement réversible (AES-256-GCM) : iv.tag.données, en base64url. */
+export function encryptSecret(plain: string) {
+  const key = Buffer.from(env.ENCRYPTION_KEY, 'base64');
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', key, iv);
+  const data = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
+  return [iv, cipher.getAuthTag(), data].map((b) => b.toString('base64url')).join('.');
+}
+
+export function decryptSecret(payload: string) {
+  const [iv, tag, data] = payload.split('.').map((p) => Buffer.from(p, 'base64url'));
+  const decipher = createDecipheriv('aes-256-gcm', Buffer.from(env.ENCRYPTION_KEY, 'base64'), iv!);
+  decipher.setAuthTag(tag!);
+  return Buffer.concat([decipher.update(data!), decipher.final()]).toString('utf8');
 }

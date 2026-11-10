@@ -63,7 +63,11 @@ beforeAll(async () => {
   await account('admin@example.ci', 'admin');
   techId = String((await account('tech@example.ci', 'technicien'))._id);
   await account('client@example.ci', 'client');
-  initSocket(server, canJoinAppointment);
+  initSocket(server, {
+    appointment: canJoinAppointment,
+    ticket: async () => null,
+    displayName: async () => '',
+  });
   await new Promise<void>((resolve) => server.listen(0, resolve));
 });
 afterAll(async () => {

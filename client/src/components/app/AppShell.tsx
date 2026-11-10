@@ -7,6 +7,7 @@ import { Logo } from '~/components/site/Logo';
 import { Button, Drawer, DrawerClose } from '~/components/ui';
 import { cn } from '~/lib/cn';
 import { EmailVerificationBanner } from './EmailVerificationBanner';
+import { NotificationBell } from './NotificationBell';
 import { UserMenu } from './UserMenu';
 
 export type SpaceNavItem = {
@@ -90,6 +91,7 @@ export function AppShell({ title, nav, profilePath, bottomNav = false }: AppShel
           <p className="hidden text-label text-ink-muted lg:block">{title}</p>
           <div className="flex items-center gap-1 sm:gap-2">
             <ThemeToggle />
+            <NotificationBell />
             <UserMenu profilePath={profilePath} />
           </div>
         </header>

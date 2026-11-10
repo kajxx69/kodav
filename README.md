@@ -63,6 +63,15 @@ Sessions : jeton d'accès de 15 min gardé en mémoire côté navigateur, refres
 - **Rappels** : email la veille, vérifié toutes les 15 minutes (node-cron).
 - **Photos** : JPEG ou PNG, 5 Mo maximum, contenu réel vérifié. Stockées dans Cloudinary en ressources privées si `CLOUDINARY_*` est renseigné, sinon dans `server/uploads` (développement). Elles ne sont jamais publiques : l'API les sert après contrôle des droits.
 
+## Support, parc et notifications
+
+- **Tickets** (`TCK-AAAA-NNNN`) : ouvert → en cours → en attente du client → résolu → fermé. Le client note la résolution (1 à 5), ce qui ferme le ticket ; sans note, il est fermé automatiquement 7 jours après sa résolution.
+- **Délai cible** : en heures ouvrées selon la priorité (calculé sur les horaires d'intervention et les jours fermés). Les délais sans contrat sont des valeurs d'exemple (`DEFAULT_SLA_HOURS`) ; ceux des formules de maintenance seront appliqués avec les abonnements (phase 6).
+- **Conversation en temps réel** : messages, « en train d'écrire », pièces jointes (JPEG, PNG, PDF, 5 Mo, 3 par message, type réel vérifié). Les notes internes ne sont diffusées qu'à l'équipe. Les messages sont en texte brut : toute balise HTML est retirée.
+- **Parc informatique** : par organisation (ou par client particulier). Pour une licence, seuls les 5 derniers caractères de la clé sont gardés, sauf si le client la confie : elle est alors chiffrée (AES-256-GCM, `ENCRYPTION_KEY`) et seul un admin peut la révéler, action journalisée (`AuditLog`).
+- **Alertes de licences** : notification et email à 30, 7 puis 0 jour de l'expiration, une seule fois par seuil (chaque matin à 7 h).
+- **Notifications** : cloche dans les trois espaces, en direct, conservées 90 jours.
+
 ## Charte graphique
 
 `client/src/brand/tokens.json` est la source de vérité : `npm run tokens -w client` (lancé automatiquement avant `dev` et `build`) génère `client/src/brand/tokens.css` (variables CSS clair/sombre, thème Tailwind, styles `text-h1`, `text-body`…). La vitrine des composants est sur `/design-system` en développement.

@@ -44,6 +44,8 @@ const envSchema = z
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     MAIL_FROM: z.string().default('KODAV Technologies <contact@kodav.ci>'),
+    /** Clé AES-256 (32 octets en base64) des clés de licence confiées. */
+    ENCRYPTION_KEY: z.string().optional(),
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
@@ -72,6 +74,13 @@ const envSchema = z
           message: 'Secret manquant ou trop court (32 caractères minimum)',
         });
       }
+    }
+    if (Buffer.from(env.ENCRYPTION_KEY ?? '', 'base64').length !== 32) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['ENCRYPTION_KEY'],
+        message: 'Clé manquante ou invalide (32 octets encodés en base64)',
+      });
     }
     if (env.JWT_ACCESS_SECRET && env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
       ctx.addIssue({
@@ -103,6 +112,7 @@ export const env = {
   ...parsed.data,
   JWT_ACCESS_SECRET: parsed.data.JWT_ACCESS_SECRET ?? 'test-access-secret-0123456789abcdefghij',
   JWT_REFRESH_SECRET: parsed.data.JWT_REFRESH_SECRET ?? 'test-refresh-secret-0123456789abcdefghi',
+  ENCRYPTION_KEY: parsed.data.ENCRYPTION_KEY ?? Buffer.alloc(32, 7).toString('base64'),
 };
 export const isProd = env.NODE_ENV === 'production';
 export const isTest = env.NODE_ENV === 'test';

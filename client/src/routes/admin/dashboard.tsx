@@ -1,6 +1,14 @@
 import type { AdminOverview } from '@kodav/shared';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, HardHat, Inbox, ShieldCheck, Users, type LucideIcon } from 'lucide-react';
+import {
+  FileText,
+  HardHat,
+  Inbox,
+  LifeBuoy,
+  ShieldCheck,
+  Users,
+  type LucideIcon,
+} from 'lucide-react';
 import { Link } from 'react-router';
 import { SpaceHeader } from '~/components/app/AppShell';
 import { Alert, Card, ErrorState, Skeleton } from '~/components/ui';
@@ -82,6 +90,12 @@ export default function AdminDashboard() {
             label="Devis à traiter"
             value={query.data.pendingQuotes}
             to="/admin/devis?statut=soumis"
+          />
+          <Stat
+            icon={LifeBuoy}
+            label={`Tickets ouverts${query.data.openTickets.urgent ? ` · ${query.data.openTickets.urgent} urgents` : ''}${query.data.openTickets.overdue ? ` · ${query.data.openTickets.overdue} hors délai` : ''}`}
+            value={query.data.openTickets.total}
+            to="/admin/tickets"
           />
           <Stat
             icon={Inbox}

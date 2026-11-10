@@ -18,6 +18,12 @@ import {
   availabilityRouter,
   trackingRouter,
 } from './modules/appointments/appointment.routes.js';
+import {
+  adminAssetsRouter,
+  assetsRouter,
+  notificationsRouter,
+} from './modules/support/asset.routes.js';
+import { staffTicketsRouter, ticketsRouter } from './modules/support/ticket.routes.js';
 import { technicianRouter } from './modules/appointments/technician.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { catalogRouter } from './modules/catalog/catalog.routes.js';
@@ -72,6 +78,11 @@ export function createApp() {
   api.use('/appointments', appointmentsRouter);
   api.use('/tracking', trackingRouter);
   api.use('/technician', technicianRouter);
+  api.use('/tickets', ticketsRouter);
+  api.use('/assets', assetsRouter);
+  api.use('/notifications', notificationsRouter);
+  api.use('/admin/tickets', staffTicketsRouter);
+  api.use('/admin/assets', adminAssetsRouter);
   api.use('/admin/quotes', adminQuotesRouter);
   api.use('/admin', adminAppointmentsRouter);
   api.use('/admin', adminCatalogRouter);

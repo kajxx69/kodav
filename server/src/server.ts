@@ -6,6 +6,9 @@ import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { initSocket } from './lib/socket.js';
 import { canJoinAppointment, sendReminders } from './modules/appointments/appointment.service.js';
+import { sendLicenseAlerts } from './modules/support/asset.routes.js';
+import { closeStaleTickets, ticketSocketAccess } from './modules/support/ticket.service.js';
+import { User } from './modules/users/user.model.js';
 import { expireQuotes } from './modules/quotes/quote.service.js';
 
 async function main() {
@@ -17,13 +20,29 @@ async function main() {
     expireQuotes().catch((err: unknown) => logger.error({ err }, 'Expiration des devis'));
   void runExpiry();
   cron.schedule('15 2 * * *', runExpiry, { timezone: 'Africa/Abidjan' });
+  // Chaque matin : alertes de licences, puis fermeture des tickets résolus depuis 7 jours.
+  cron.schedule(
+    '0 7 * * *',
+    () => {
+      sendLicenseAlerts().catch((err: unknown) => logger.error({ err }, 'Alertes de licences'));
+      closeStaleTickets().catch((err: unknown) => logger.error({ err }, 'Fermeture des tickets'));
+    },
+    { timezone: 'Africa/Abidjan' },
+  );
   // Rappels la veille : vérification toutes les 15 minutes.
   cron.schedule('*/15 * * * *', () => {
     sendReminders().catch((err: unknown) => logger.error({ err }, 'Rappels d’intervention'));
   });
 
   const server = http.createServer(createApp());
-  initSocket(server, canJoinAppointment);
+  initSocket(server, {
+    appointment: canJoinAppointment,
+    ticket: ticketSocketAccess,
+    displayName: async (id) => {
+      const u = await User.findById(id, { firstName: 1 }).lean();
+      return u?.firstName ?? '';
+    },
+  });
   server.listen(env.PORT, () => {
     logger.info(`API KODAV prête sur ${env.API_URL}/api/v1 (${env.NODE_ENV})`);
   });

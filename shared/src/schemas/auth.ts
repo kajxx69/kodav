@@ -172,5 +172,7 @@ export type AdminOverview = {
   newLeads: number;
   /** Devis reçus ou en cours d'étude. */
   pendingQuotes: number;
+  /** Tickets non résolus : total, urgents (haute ou critique) et hors délai cible. */
+  openTickets: { total: number; urgent: number; overdue: number };
   placeholderPrices: number;
 };

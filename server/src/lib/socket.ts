@@ -44,14 +44,21 @@ function identify(socket: Socket): SocketIdentity | null {
   return null;
 }
 
+export type SocketAccess = {
+  appointment: (userId: string, role: UserRole, id: string) => Promise<boolean>;
+  /** « staff » : voit aussi les notes internes ; null : aucun accès. */
+  ticket: (userId: string, role: UserRole, id: string) => Promise<'client' | 'staff' | null>;
+  displayName: (userId: string) => Promise<string>;
+};
+
+const OBJECT_ID = /^[a-f\d]{24}$/i;
+
 /**
  * Temps réel : connexion authentifiée (jeton d'accès ou jeton de suivi), salles
- * `user:<id>`, `staff` (techniciens et admins) et `appointment:<id>` (suivi public).
+ * `user:<id>`, `staff`, `appointment:<id>` (suivi) et `ticket:<id>` (+ `ticket:<id>:staff`
+ * pour les notes internes).
  */
-export function initSocket(
-  server: http.Server,
-  canJoinAppointment: (userId: string, role: UserRole, id: string) => Promise<boolean>,
-) {
+export function initSocket(server: http.Server, access: SocketAccess) {
   io = new Server(server, {
     path: '/socket.io',
     cors: { origin: env.CORS_ORIGINS, credentials: true },
@@ -71,15 +78,39 @@ export function initSocket(
       void socket.join(`appointment:${identity.appointmentId}`);
     }
     socket.on('appointment:join', async (id: unknown, ack?: (ok: boolean) => void) => {
-      if (typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id) || identity.kind !== 'user') {
+      if (typeof id !== 'string' || !OBJECT_ID.test(id) || identity.kind !== 'user') {
         ack?.(false);
         return;
       }
-      const allowed = await canJoinAppointment(identity.userId, identity.role, id).catch(
-        () => false,
-      );
+      const allowed = await access
+        .appointment(identity.userId, identity.role, id)
+        .catch(() => false);
       if (allowed) void socket.join(`appointment:${id}`);
       ack?.(allowed);
+    });
+    socket.on('ticket:join', async (id: unknown, ack?: (ok: boolean) => void) => {
+      if (typeof id !== 'string' || !OBJECT_ID.test(id) || identity.kind !== 'user') {
+        ack?.(false);
+        return;
+      }
+      const level = await access.ticket(identity.userId, identity.role, id).catch(() => null);
+      if (level) {
+        void socket.join(`ticket:${id}`);
+        if (level === 'staff') void socket.join(`ticket:${id}:staff`);
+        socket.data.name ??= await access.displayName(identity.userId).catch(() => '');
+      }
+      ack?.(Boolean(level));
+    });
+    // « En train d'écrire » : relayé aux autres participants déjà dans la salle.
+    socket.on('ticket:typing', (id: unknown) => {
+      if (typeof id !== 'string' || identity.kind !== 'user' || !socket.rooms.has(`ticket:${id}`)) {
+        return;
+      }
+      socket.to(`ticket:${id}`).emit('ticket:typing', {
+        ticketId: id,
+        userId: identity.userId,
+        name: socket.data.name as string,
+      });
     });
   });
   logger.info('Temps réel (Socket.io) prêt');

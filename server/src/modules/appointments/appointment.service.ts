@@ -247,6 +247,19 @@ const STATUS_MESSAGES: Partial<Record<AppointmentStatus, string>> = {
 
 export function notifyStatus(a: AppointmentDocument) {
   broadcast(a);
+  if (a.client) {
+    inBackground(
+      import('../notifications/notification.service.js').then(({ notify }) =>
+        notify([a.client], {
+          type: 'appointment_status',
+          title: `Intervention ${a.reference} : ${APPOINTMENT_STATUS_LABELS[a.status].toLowerCase()}`,
+          body: when(a.start),
+          link: `/espace-client/rendez-vous/${String(a._id)}`,
+        }),
+      ),
+      'Notification de rendez-vous',
+    );
+  }
   const message = STATUS_MESSAGES[a.status];
   if (!message) return;
   inBackground(

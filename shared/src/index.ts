@@ -15,3 +15,4 @@ export * from './schemas/content.js';
 export * from './schemas/plans.js';
 export * from './schemas/quote.js';
 export * from './schemas/settings.js';
+export * from './schemas/support.js';

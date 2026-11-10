@@ -6,23 +6,10 @@ import { normalizePath } from '~/lib/seo';
 
 /** Rubriques des espaces livrées dans les phases suivantes : titre et contenu prévu. */
 const sections: Record<string, { title: string; lead: string }> = {
-  '/espace-client/tickets': {
-    title: 'Support',
-    lead: 'Vos demandes d’assistance et les échanges avec notre équipe.',
-  },
-  '/espace-client/parc': {
-    title: 'Mon parc informatique',
-    lead: 'Postes, serveurs, imprimantes, équipements réseau et licences, avec alertes d’échéance.',
-  },
   '/espace-client/documents': {
     title: 'Mes documents',
     lead: 'Devis, rapports d’intervention et factures au format PDF.',
   },
-  '/technicien/tickets': {
-    title: 'Tickets assignés',
-    lead: 'Les demandes de support qui vous sont confiées.',
-  },
-  '/admin/tickets': { title: 'Tickets', lead: 'Vue kanban et liste, assignation, notes internes.' },
   '/admin/clients': {
     title: 'Clients et organisations',
     lead: 'Fiche complète : coordonnées, devis, rendez-vous, tickets, parc et factures.',

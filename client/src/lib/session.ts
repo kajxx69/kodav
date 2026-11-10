@@ -3,6 +3,7 @@ import { redirect } from 'react-router';
 import { useAuthStore, SESSION_HINT_KEY } from '~/stores/auth';
 import { refreshSession } from './api';
 import { queryClient } from './queryClient';
+import { closeRealtime } from './realtime';
 import { safeStorage } from './storage';
 
 let restoring: Promise<void> | null = null;
@@ -62,6 +63,7 @@ export async function redirectIfAuthenticated(request: Request) {
 
 /** Après déconnexion : plus aucune donnée privée en cache. */
 export function clearPrivateCache() {
+  closeRealtime();
   queryClient.removeQueries({ queryKey: ['me'] });
   queryClient.removeQueries({ queryKey: ['private'] });
 }
