@@ -1,6 +1,6 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { MotionConfig } from 'motion/react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Links,
   Meta,
@@ -14,7 +14,7 @@ import { Toaster } from '~/components/ui';
 import { NotFoundContent } from '~/components/site/NotFoundContent';
 import { fetchAtBuild, fetchInBrowser } from '~/lib/loaderData';
 import { queries } from '~/lib/queries';
-import { queryClient } from '~/lib/queryClient';
+import { createQueryClient, queryClient } from '~/lib/queryClient';
 import { ensureSession } from '~/lib/session';
 import type { RootData } from '~/lib/useSettings';
 import { useProfileStore } from '~/stores/profile';
@@ -79,6 +79,11 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 function Providers({ children }: { children: ReactNode }) {
+  // Au pré-rendu, un cache neuf par page : sinon une page hériterait des données d'une autre
+  // et son HTML différerait de ce que le navigateur affiche à l'hydratation.
+  const [client] = useState(() =>
+    typeof window === 'undefined' ? createQueryClient() : queryClient,
+  );
   useEffect(() => {
     useThemeStore.getState().hydrate();
     useProfileStore.getState().hydrate();
@@ -86,7 +91,7 @@ function Providers({ children }: { children: ReactNode }) {
     void ensureSession();
   }, []);
   return (
-    <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={client}>
       <MotionConfig reducedMotion="user">
         {children}
         <Toaster />

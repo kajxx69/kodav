@@ -84,3 +84,12 @@ export function requireRole(...roles: UserRole[]): RequestHandler {
     next();
   };
 }
+
+/** Route ouverte aux visiteurs : identifie l'utilisateur seulement s'il envoie un jeton. */
+export const optionalAuthenticate: RequestHandler = async (req, res, next) => {
+  if (!req.headers.authorization) {
+    next();
+    return;
+  }
+  await authenticate(req, res, next);
+};

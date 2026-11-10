@@ -29,3 +29,15 @@ export const authLimiter = rateLimit({
     );
   },
 });
+
+/** Estimation en direct du configurateur : appelée à chaque changement, plafond large. */
+export const estimateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  skip: () => isTest,
+  handler: (_req, _res, next) => {
+    next(new AppError(429, 'TOO_MANY_REQUESTS', 'Trop de calculs, patientez quelques secondes'));
+  },
+});

@@ -31,3 +31,28 @@ export function whatsappLink(phone: string, message: string) {
 export function telLink(phone: string) {
   return /^\+225\d{10}$/.test(phone) ? `tel:${phone}` : null;
 }
+
+const numberFormat = new Intl.NumberFormat('fr-FR');
+
+/** { min: 390000, max: 770000 } → « 390 000 – 770 000 FCFA ». */
+export function rangeLabel({ min, max }: { min: number; max: number }) {
+  return min === max ? formatFcfa(min) : `${numberFormat.format(min)} – ${formatFcfa(max)}`;
+}
+
+/** Pluriel simple des unités du catalogue (« poste » → « postes »). */
+export function plural(word: string, count: number) {
+  return count > 1 && word && !/[sxz]$/.test(word) ? `${word}s` : word;
+}
+
+const dateFormat = new Intl.DateTimeFormat('fr-FR', {
+  dateStyle: 'long',
+  timeZone: 'Africa/Abidjan',
+});
+const dateTimeFormat = new Intl.DateTimeFormat('fr-FR', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'Africa/Abidjan',
+});
+
+export const formatDate = (iso: string) => dateFormat.format(new Date(iso));
+export const formatDateTime = (iso: string) => dateTimeFormat.format(new Date(iso));

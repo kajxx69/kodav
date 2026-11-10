@@ -15,6 +15,7 @@ import { authenticate } from '../../middlewares/auth.js';
 import { authLimiter } from '../../middlewares/rateLimit.js';
 import { verifyTurnstile } from '../../middlewares/turnstile.js';
 import { Organization } from '../organizations/organization.model.js';
+import { attachVisitorQuotes } from '../quotes/quote.service.js';
 import { User } from '../users/user.model.js';
 import {
   EMAIL_VERIFY_TTL_MS,
@@ -143,6 +144,9 @@ authRouter.post('/verify-email', authLimiter, async (req, res) => {
   const { token } = verifyEmailInputSchema.parse(req.body);
   const userId = await consumeOneTimeToken(token, 'email_verify');
   await User.updateOne({ _id: userId, emailVerifiedAt: null }, { emailVerifiedAt: new Date() });
+  // Adresse prouvée : les demandes de devis faites sans compte avec cet email sont rattachées.
+  const user = await User.findById(userId).lean();
+  if (user) await attachVisitorQuotes(user);
   sendOk(res, { verified: true });
 });
 

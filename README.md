@@ -45,6 +45,15 @@ Sessions : jeton d'accès de 15 min gardé en mémoire côté navigateur, refres
 | Technicien     | `/technicien`    | technicien, admin |
 | Administration | `/admin`         | admin             |
 
+## Devis
+
+- **Prix** : calculés uniquement par l'API (`POST /api/v1/pricing/estimate`), à partir du catalogue et des règles tarifaires (urgence, déplacement par commune, remise volume). Le configurateur `/devis` et l'aperçu de l'admin appellent ce même calcul.
+- **Parcours** : Diagnostic Express (`/diagnostic`) → configurateur pré-rempli → demande `DEV-AAAA-NNNN` (PDF d'estimation par email) → l'admin ajuste les lignes et envoie le devis définitif (PDF + lien d'acceptation à usage unique) → le client accepte ou refuse en ligne, depuis son espace ou depuis le lien.
+- **Sans compte** : la demande crée un prospect ; si le visiteur crée ensuite un compte avec la même adresse, ses demandes y sont rattachées dès la confirmation de l'email.
+- **Brouillon** : sauvegardé dans le navigateur, et sur le serveur pour un client connecté.
+- **Expiration** : les devis envoyés passent en « expiré » à la fin de leur validité (tâche quotidienne à 2 h 15, heure d'Abidjan, et au démarrage de l'API).
+- **PDF** : générés à la demande avec pdfkit et les polices du kit de marque (`server/assets/fonts`, converties en TTF car pdfkit ne sait pas extraire un sous-ensemble d'une police WOFF2).
+
 ## Charte graphique
 
 `client/src/brand/tokens.json` est la source de vérité : `npm run tokens -w client` (lancé automatiquement avant `dev` et `build`) génère `client/src/brand/tokens.css` (variables CSS clair/sombre, thème Tailwind, styles `text-h1`, `text-body`…). La vitrine des composants est sur `/design-system` en développement.

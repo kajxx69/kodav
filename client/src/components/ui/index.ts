@@ -14,3 +14,4 @@ export { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs';
 export { Toaster, toast } from './Toast';
 export { Accordion } from './Accordion';
 export { Alert } from './Alert';
+export { ChoiceCards, type Choice } from './ChoiceCards';

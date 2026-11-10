@@ -80,3 +80,40 @@ export const serviceListQuerySchema = z.object({
     .transform((v) => (v === undefined ? undefined : v === 'true')),
 });
 export type ServiceListQuery = z.input<typeof serviceListQuerySchema>;
+
+/** Édition des tarifs d'un service depuis l'admin (les options arrivent avec le back-office complet). */
+export const adminServiceUpdateSchema = z
+  .object({
+    pricingMode: z.enum(PRICING_MODES),
+    unitLabel: z.string().trim().max(40).optional().default(''),
+    priceMin: z.coerce.number().int('Montant entier en FCFA').min(0).max(1_000_000_000).optional(),
+    priceMax: z.coerce.number().int('Montant entier en FCFA').min(0).max(1_000_000_000).optional(),
+    isActive: z.boolean(),
+    featured: z.boolean(),
+  })
+  .superRefine((s, ctx) => {
+    if (s.pricingMode === 'sur_devis') return;
+    if (s.priceMin === undefined) {
+      ctx.addIssue({ code: 'custom', path: ['priceMin'], message: 'Prix minimum requis' });
+    }
+    if (s.priceMax === undefined) {
+      ctx.addIssue({ code: 'custom', path: ['priceMax'], message: 'Prix maximum requis' });
+    }
+    if (s.priceMin !== undefined && s.priceMax !== undefined && s.priceMin > s.priceMax) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['priceMax'],
+        message: 'Doit être supérieur au minimum',
+      });
+    }
+    if (s.pricingMode === 'par_unite' && !s.unitLabel) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['unitLabel'],
+        message: 'Unité requise (poste, heure…)',
+      });
+    }
+  });
+export type AdminServiceUpdateInput = z.input<typeof adminServiceUpdateSchema>;
+
+export type AdminService = Service & { isActive: boolean; categoryActive: boolean };

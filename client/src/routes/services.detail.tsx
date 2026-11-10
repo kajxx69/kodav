@@ -12,12 +12,24 @@ import { queries } from '~/lib/queries';
 import { SITE_URL, brandFromMatches, pageMeta } from '~/lib/seo';
 import type { Route } from './+types/services.detail';
 
-export const loader = ({ params }: Route.LoaderArgs) =>
-  fetchAtBuild(queries.service(params.pole, params.service));
-export const clientLoader = ({ params }: Route.ClientLoaderArgs) =>
-  fetchInBrowser(queries.service(params.pole, params.service));
+/** Le service et son pôle (« Dans le même pôle »), au build comme dans le navigateur. */
+async function loadServicePage(
+  fetch: typeof fetchAtBuild,
+  params: { pole: string; service: string },
+) {
+  const [service, category] = await Promise.all([
+    fetch(queries.service(params.pole, params.service)),
+    fetch(queries.category(params.pole)),
+  ]);
+  return { service, category };
+}
 
-export function meta({ matches, loaderData: service, params }: Route.MetaArgs) {
+export const loader = ({ params }: Route.LoaderArgs) => loadServicePage(fetchAtBuild, params);
+export const clientLoader = ({ params }: Route.ClientLoaderArgs) =>
+  loadServicePage(fetchInBrowser, params);
+
+export function meta({ matches, loaderData, params }: Route.MetaArgs) {
+  const service = loaderData?.service;
   const brand = brandFromMatches(matches);
   const path = `/services/${params.pole}/${params.service}`;
   return pageMeta(matches, {
@@ -66,8 +78,8 @@ export default function ServiceDetail({ loaderData, params }: Route.ComponentPro
     data: service,
     isError,
     refetch,
-  } = useLiveQuery(queries.service(params.pole, params.service), loaderData);
-  const { data: category } = useLiveQuery(queries.category(params.pole), null);
+  } = useLiveQuery(queries.service(params.pole, params.service), loaderData.service);
+  const { data: category } = useLiveQuery(queries.category(params.pole), loaderData.category);
   const related = category?.services.filter((s) => s.slug !== params.service).slice(0, 3) ?? [];
 
   if (!service) {

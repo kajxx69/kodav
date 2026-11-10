@@ -3,7 +3,13 @@ import { env, isProd, isTest } from '../config/env.js';
 import { logger } from '../config/logger.js';
 import { getPublicSettings } from '../modules/settings/settings.service.js';
 
-export type Mail = { to: string; subject: string; text: string; html: string };
+export type Mail = {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  attachments?: { filename: string; content: Buffer; contentType?: string }[];
+};
 
 /** Boîte d'envoi en mémoire, lue par les tests. */
 export const testOutbox: Mail[] = [];
@@ -30,7 +36,10 @@ export async function sendMail(mail: Mail) {
       return;
     }
     // Développement sans SMTP : le contenu (liens compris) s'affiche dans la console.
-    logger.info(`Email (non envoyé, SMTP absent) à ${mail.to}\n${mail.subject}\n\n${mail.text}`);
+    const files = mail.attachments?.map((a) => a.filename).join(', ');
+    logger.info(
+      `Email (non envoyé, SMTP absent) à ${mail.to}\n${mail.subject}\n\n${mail.text}${files ? `\n\nPièces jointes : ${files}` : ''}`,
+    );
     return;
   }
   try {
@@ -54,6 +63,7 @@ type TemplateInput = {
   paragraphs: string[];
   action?: { label: string; url: string };
   footnote?: string;
+  attachments?: Mail['attachments'];
 };
 
 /** Gabarit commun : texte brut + HTML sobre aux couleurs de la marque. */
@@ -80,5 +90,11 @@ ${input.footnote ? `<p style="font-size:13px;color:#5b6b80">${escapeHtml(input.f
 <p>L’équipe ${escapeHtml(brand.legalName)}</p>
 </td></tr></table></td></tr></table></body></html>`;
 
-  await sendMail({ to: input.to, subject: input.subject, text: lines.join('\n'), html });
+  await sendMail({
+    to: input.to,
+    subject: input.subject,
+    text: lines.join('\n'),
+    html,
+    attachments: input.attachments,
+  });
 }

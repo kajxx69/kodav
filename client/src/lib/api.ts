@@ -1,5 +1,6 @@
 import type { ApiResponse, AuthSession } from '@kodav/shared';
-import { useAuthStore } from '~/stores/auth';
+import { SESSION_HINT_KEY, useAuthStore } from '~/stores/auth';
+import { safeStorage } from './storage';
 
 export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api/v1';
 
@@ -79,6 +80,12 @@ export function refreshSession(): Promise<AuthSession | null> {
 
 /** Renvoie directement `data`, ou lève une ApiRequestError ; jeton rafraîchi si expiré. */
 export async function apiRequest<T>(path: string, init: RequestOptions = {}): Promise<T> {
+  // Session en cours de restauration (rechargement de page) : on attend son jeton plutôt
+  // que de partir sans et d'essuyer un 401.
+  const state = useAuthStore.getState();
+  if (!state.accessToken && state.status === 'unknown' && safeStorage.get(SESSION_HINT_KEY)) {
+    await refreshSession().catch(() => null);
+  }
   const token = useAuthStore.getState().accessToken;
   try {
     return await send<T>(path, init, token);
@@ -95,5 +102,31 @@ export async function logoutRequest() {
     await send('/auth/logout', { method: 'POST', headers: APP_HEADER }, null);
   } finally {
     useAuthStore.getState().clear();
+  }
+}
+
+/** Fichier protégé (PDF) : jeton joint, rafraîchi au besoin, puis ouverture dans un onglet. */
+export async function openProtectedFile(path: string) {
+  // Onglet ouvert tout de suite : sinon le navigateur le bloque après l'attente réseau.
+  const tab = window.open('', '_blank');
+  const load = (token: string | null) =>
+    fetch(`${API_URL}${path}`, {
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  try {
+    let res = await load(useAuthStore.getState().accessToken);
+    if (res.status === 401) {
+      const session = await refreshSession();
+      if (session) res = await load(session.accessToken);
+    }
+    if (!res.ok) throw new ApiRequestError(res.status, 'FILE_ERROR', 'Document indisponible');
+    const url = URL.createObjectURL(await res.blob());
+    if (tab) tab.location.href = url;
+    else window.location.href = url;
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (err) {
+    tab?.close();
+    throw err;
   }
 }

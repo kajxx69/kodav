@@ -170,5 +170,7 @@ export const adminUserListQuerySchema = paginationQuerySchema.extend({
 export type AdminOverview = {
   users: Record<(typeof USER_ROLES)[number], number>;
   newLeads: number;
+  /** Devis reçus ou en cours d'étude. */
+  pendingQuotes: number;
   placeholderPrices: number;
 };

@@ -75,3 +75,23 @@ export const ROLE_HOME: Record<UserRole, string> = {
   technicien: '/technicien',
   admin: '/admin',
 };
+
+export const QUOTE_STATUSES = [
+  'brouillon',
+  'soumis',
+  'en_revue',
+  'envoye',
+  'accepte',
+  'refuse',
+  'expire',
+] as const;
+
+export const QUOTE_STATUS_LABELS: Record<(typeof QUOTE_STATUSES)[number], string> = {
+  brouillon: 'Brouillon',
+  soumis: 'Demande reçue',
+  en_revue: 'En cours d’étude',
+  envoye: 'Devis envoyé',
+  accepte: 'Accepté',
+  refuse: 'Refusé',
+  expire: 'Expiré',
+};

@@ -1,12 +1,20 @@
 import http from 'node:http';
+import cron from 'node-cron';
 import { createApp } from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
+import { expireQuotes } from './modules/quotes/quote.service.js';
 
 async function main() {
   // env.ts garantit la présence de MONGODB_URI hors environnement de test.
   await connectDatabase(env.MONGODB_URI!);
+
+  // Tâches planifiées (heure d'Abidjan) : expiration des devis chaque nuit, et au démarrage.
+  const runExpiry = () =>
+    expireQuotes().catch((err: unknown) => logger.error({ err }, 'Expiration des devis'));
+  void runExpiry();
+  cron.schedule('15 2 * * *', runExpiry, { timezone: 'Africa/Abidjan' });
 
   const server = http.createServer(createApp());
   server.listen(env.PORT, () => {

@@ -10,6 +10,12 @@ import type {
 } from '@kodav/shared';
 import { apiRequest } from './api';
 
+export type PricingRulesPublic = {
+  urgency: { key: string; label: string; percent: number }[];
+  communes: { commune: string; fee: number }[];
+  volumeDiscount: { minQuantity: number; percent: number }[];
+};
+
 /** Requête API : clé de cache + appel, partagée entre loaders (build), clientLoaders et composants. */
 export type ApiQuery<T> = { queryKey: readonly unknown[]; queryFn: () => Promise<T> };
 
@@ -43,6 +49,7 @@ export const queries = {
       ['catalog', 'service', pole, slug],
       `/catalog/services/${enc(pole)}/${enc(slug)}`,
     ),
+  pricingRules: () => apiQuery<PricingRulesPublic>(['pricing', 'rules'], '/pricing/rules'),
   plans: () => apiQuery<MaintenancePlan[]>(['plans'], '/plans'),
   faqs: () => apiQuery<Faq[]>(['content', 'faqs'], '/content/faqs'),
   testimonials: () => apiQuery<Testimonial[]>(['content', 'testimonials'], '/content/testimonials'),

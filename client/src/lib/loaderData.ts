@@ -22,11 +22,32 @@ function isNotFound(err: unknown) {
   return err instanceof ApiRequestError && err.status === 404;
 }
 
-/** Loader de build : si l'API est injoignable, la page sera complétée côté navigateur. */
+/** Réponses partagées entre les pages pré-rendues (paramètres et catalogue sur chaque page). */
+const buildCache = new Map<string, Promise<unknown>>();
+/** React Router abandonne une page après 10 s : on rend la main avant. */
+const BUILD_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(promise: Promise<T>) {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`délai de ${BUILD_TIMEOUT_MS} ms dépassé`)),
+        BUILD_TIMEOUT_MS,
+      ),
+    ),
+  ]);
+}
+
+/** Loader de build : si l'API est injoignable ou lente, la page sera complétée côté navigateur. */
 export async function fetchAtBuild<T>(query: ApiQuery<T>): Promise<T | null> {
+  const key = JSON.stringify(query.queryKey);
+  if (!buildCache.has(key)) buildCache.set(key, query.queryFn());
   try {
-    return await query.queryFn();
+    return (await withTimeout(buildCache.get(key)!)) as T;
   } catch (err) {
+    // Une erreur réseau ne doit pas rester en cache pour les pages suivantes.
+    if (!isNotFound(err)) buildCache.delete(key);
     if (isNotFound(err)) throw data(null, { status: 404 });
     console.warn(`[prérendu] API injoignable, contenu chargé dans le navigateur : ${String(err)}`);
     return null;

@@ -18,7 +18,9 @@ export default [
   ...prefix('espace-client', [
     layout('routes/espace-client/layout.tsx', [
       index('routes/espace-client/dashboard.tsx'),
-      ...placeholders('client', ['devis', 'rendez-vous', 'tickets', 'parc', 'documents']),
+      route('devis', 'routes/espace-client/quotes.tsx'),
+      route('devis/:id', 'routes/espace-client/quote.tsx'),
+      ...placeholders('client', ['rendez-vous', 'tickets', 'parc', 'documents']),
       profile('client'),
     ]),
   ]),
@@ -33,13 +35,14 @@ export default [
     layout('routes/admin/layout.tsx', [
       index('routes/admin/dashboard.tsx'),
       route('utilisateurs', 'routes/admin/users.tsx'),
+      route('devis', 'routes/admin/quotes.tsx'),
+      route('devis/:id', 'routes/admin/quote.tsx'),
+      route('catalogue', 'routes/admin/catalogue.tsx'),
       ...placeholders('admin', [
-        'devis',
         'planning',
         'tickets',
         'clients',
         'prospects',
-        'catalogue',
         'contenu',
         'parametres',
       ]),
@@ -61,9 +64,10 @@ export default [
     route('mentions-legales', 'routes/legal.tsx', { id: 'legal-notice' }),
     route('confidentialite', 'routes/legal.tsx', { id: 'privacy' }),
     route('cgv', 'routes/legal.tsx', { id: 'terms' }),
-    // Parcours livrés dans les phases suivantes (3, 4, 7) : page d'attente avec contact direct.
-    route('diagnostic', 'routes/coming-soon.tsx', { id: 'diagnostic' }),
-    route('devis', 'routes/coming-soon.tsx', { id: 'quote' }),
+    // Parcours livrés dans les phases suivantes (4, 7) : page d'attente avec contact direct.
+    route('diagnostic', 'routes/diagnostic.tsx'),
+    route('devis', 'routes/devis.tsx'),
+    route('devis/reponse', 'routes/devis.reponse.tsx'),
     route('rendez-vous', 'routes/coming-soon.tsx', { id: 'appointment' }),
     route('suivi', 'routes/coming-soon.tsx', { id: 'tracking' }),
     route('bilan-informatique', 'routes/coming-soon.tsx', { id: 'assessment' }),

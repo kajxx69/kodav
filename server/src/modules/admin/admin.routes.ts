@@ -6,6 +6,7 @@ import { authenticate, requireRole } from '../../middlewares/auth.js';
 import { Service } from '../catalog/catalog.model.js';
 import { Lead } from '../leads/lead.model.js';
 import { Plan } from '../plans/plans.model.js';
+import { Quote } from '../quotes/quote.model.js';
 import { User, toAuthUser } from '../users/user.model.js';
 
 export const adminRouter = Router();
@@ -13,19 +14,22 @@ adminRouter.use(authenticate, requireRole('admin'));
 
 /** Indicateurs disponibles dès la phase 2 ; le tableau de bord complet arrive en phase 6. */
 adminRouter.get('/overview', async (_req, res) => {
-  const [byRole, newLeads, placeholderServices, placeholderPlans] = await Promise.all([
-    User.aggregate<{ _id: string; count: number }>([
-      { $group: { _id: '$role', count: { $sum: 1 } } },
-    ]),
-    Lead.countDocuments({ status: 'nouveau' }),
-    Service.countDocuments({ isPlaceholderPrice: true }),
-    Plan.countDocuments({ isPlaceholderPrice: true }),
-  ]);
+  const [byRole, newLeads, placeholderServices, placeholderPlans, pendingQuotes] =
+    await Promise.all([
+      User.aggregate<{ _id: string; count: number }>([
+        { $group: { _id: '$role', count: { $sum: 1 } } },
+      ]),
+      Lead.countDocuments({ status: 'nouveau' }),
+      Service.countDocuments({ isPlaceholderPrice: true }),
+      Plan.countDocuments({ isPlaceholderPrice: true }),
+      Quote.countDocuments({ status: trusted({ $in: ['soumis', 'en_revue'] }) }),
+    ]);
   const users = Object.fromEntries(USER_ROLES.map((r) => [r, 0])) as AdminOverview['users'];
   for (const { _id, count } of byRole) users[_id as keyof typeof users] = count;
   sendOk(res, {
     users,
     newLeads,
+    pendingQuotes,
     placeholderPrices: placeholderServices + placeholderPlans,
   } satisfies AdminOverview);
 });

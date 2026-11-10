@@ -1,6 +1,6 @@
 import type { AdminOverview } from '@kodav/shared';
 import { useQuery } from '@tanstack/react-query';
-import { HardHat, Inbox, ShieldCheck, Users, type LucideIcon } from 'lucide-react';
+import { FileText, HardHat, Inbox, ShieldCheck, Users, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router';
 import { SpaceHeader } from '~/components/app/AppShell';
 import { Alert, Card, ErrorState, Skeleton } from '~/components/ui';
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
     <>
       <SpaceHeader
         title="Tableau de bord"
-        lead="Vue d’ensemble de l’activité. Les indicateurs détaillés (devis, chiffre d’affaires, graphiques) arrivent avec les modules correspondants."
+        lead="Vue d’ensemble de l’activité. Le chiffre d’affaires et les graphiques arrivent avec le back-office complet."
       />
       {query.data && query.data.placeholderPrices > 0 && (
         <Alert
@@ -76,7 +76,13 @@ export default function AdminDashboard() {
       ) : query.isError ? (
         <ErrorState message={query.error.message} onRetry={() => void query.refetch()} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Stat
+            icon={FileText}
+            label="Devis à traiter"
+            value={query.data.pendingQuotes}
+            to="/admin/devis?statut=soumis"
+          />
           <Stat
             icon={Inbox}
             label="Nouveaux prospects"

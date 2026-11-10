@@ -9,13 +9,18 @@ import { logger } from './config/logger.js';
 import { AppError } from './lib/http.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.js';
 import { mongoSanitize } from './middlewares/sanitize.js';
+import { adminCatalogRouter } from './modules/admin/admin.catalog.routes.js';
+import { adminQuotesRouter } from './modules/admin/admin.quotes.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { catalogRouter } from './modules/catalog/catalog.routes.js';
+import { diagnosticRouter } from './modules/diagnostic/diagnostic.routes.js';
 import { contentRouter } from './modules/content/content.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { contactRouter } from './modules/leads/contact.routes.js';
 import { organizationsRouter } from './modules/organizations/organization.routes.js';
+import { pricingRouter } from './modules/pricing/pricing.routes.js';
+import { quotesRouter } from './modules/quotes/quote.routes.js';
 import { plansRouter } from './modules/plans/plans.routes.js';
 import { settingsRouter } from './modules/settings/settings.routes.js';
 
@@ -53,6 +58,11 @@ export function createApp() {
   api.use('/contact', contactRouter);
   api.use('/auth', authRouter);
   api.use('/organizations', organizationsRouter);
+  api.use('/pricing', pricingRouter);
+  api.use('/diagnostic', diagnosticRouter);
+  api.use('/quotes', quotesRouter);
+  api.use('/admin/quotes', adminQuotesRouter);
+  api.use('/admin', adminCatalogRouter);
   api.use('/admin', adminRouter);
   app.use('/api/v1', api);
 

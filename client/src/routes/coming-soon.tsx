@@ -7,16 +7,6 @@ import { normalizePath, pageMeta } from '~/lib/seo';
 import type { Route } from './+types/coming-soon';
 
 const pages: Record<string, { title: string; lead: string; subject: string }> = {
-  '/devis': {
-    title: 'Demander un devis',
-    lead: 'Le configurateur de devis en ligne, avec estimation instantanée, arrive très bientôt.',
-    subject: 'Demande de devis',
-  },
-  '/diagnostic': {
-    title: 'Diagnostic express',
-    lead: 'Quelques questions pour identifier les services adaptés à votre situation.',
-    subject: 'Demande de diagnostic',
-  },
   '/rendez-vous': {
     title: 'Prendre rendez-vous',
     lead: 'La réservation de créneaux en ligne arrive très bientôt.',

@@ -24,8 +24,10 @@ export function useLogout() {
         description: 'Le serveur est injoignable ; la session a été fermée sur cet appareil.',
       });
     }
+    // Quitter la page d'abord : vider le cache sous une page encore affichée relancerait
+    // ses requêtes privées sans jeton.
+    await navigate('/connexion', { replace: true });
     clearPrivateCache();
-    navigate('/connexion', { replace: true });
   };
 }
 

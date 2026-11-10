@@ -6,10 +6,6 @@ import { normalizePath } from '~/lib/seo';
 
 /** Rubriques des espaces livrées dans les phases suivantes : titre et contenu prévu. */
 const sections: Record<string, { title: string; lead: string }> = {
-  '/espace-client/devis': {
-    title: 'Mes devis',
-    lead: 'Vos demandes de devis, leur statut et les documents PDF, avec acceptation en ligne.',
-  },
   '/espace-client/rendez-vous': {
     title: 'Mes rendez-vous',
     lead: 'Vos interventions planifiées, leur suivi en temps réel et les rapports signés.',
@@ -30,7 +26,6 @@ const sections: Record<string, { title: string; lead: string }> = {
     title: 'Tickets assignés',
     lead: 'Les demandes de support qui vous sont confiées.',
   },
-  '/admin/devis': { title: 'Devis', lead: 'Liste filtrable, éditeur et envoi des devis.' },
   '/admin/planning': {
     title: 'Planning',
     lead: 'Vue jour et semaine des interventions, déplacement et réassignation.',
@@ -43,10 +38,6 @@ const sections: Record<string, { title: string; lead: string }> = {
   '/admin/prospects': {
     title: 'Prospects',
     lead: 'Demandes issues du formulaire de contact, du diagnostic et du bilan informatique.',
-  },
-  '/admin/catalogue': {
-    title: 'Catalogue',
-    lead: 'Pôles, services, options et aperçu du calcul de prix.',
   },
   '/admin/contenu': {
     title: 'Contenu',
