@@ -7,7 +7,7 @@ import {
   type QuoteSubmitInput,
 } from '@kodav/shared';
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router';
 import { z } from 'zod';
@@ -51,6 +51,8 @@ export function ContactStep({
     register,
     handleSubmit,
     setError,
+    setValue,
+    getValues,
     formState: { errors },
   } = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(formSchema),
@@ -65,6 +67,21 @@ export function ContactStep({
       website: '',
     },
   });
+
+  // Session restaurée après le premier affichage (rechargement) : on complète les champs vides.
+  useEffect(() => {
+    if (!user) return;
+    const values: [Parameters<typeof setValue>[0], string | null | undefined][] = [
+      ['contact.name', `${user.firstName} ${user.lastName}`],
+      ['contact.email', user.email],
+      ['contact.phone', user.phone.replace(/^\+225/, '')],
+      ['contact.profile', user.profile],
+      ['contact.company', user.organization?.name],
+    ];
+    for (const [name, value] of values) {
+      if (value && !getValues(name)) setValue(name, value as never);
+    }
+  }, [user, getValues, setValue]);
 
   const mutation = useMutation({
     mutationFn: (values: FormOutput) => {

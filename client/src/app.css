@@ -5,6 +5,10 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 @layer base {
+  /* Un fieldset s'élargit par défaut à son contenu (bandeaux défilants) : on l'en empêche. */
+  fieldset {
+    min-width: 0;
+  }
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;

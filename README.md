@@ -54,6 +54,15 @@ Sessions : jeton d'accès de 15 min gardé en mémoire côté navigateur, refres
 - **Expiration** : les devis envoyés passent en « expiré » à la fin de leur validité (tâche quotidienne à 2 h 15, heure d'Abidjan, et au démarrage de l'API).
 - **PDF** : générés à la demande avec pdfkit et les polices du kit de marque (`server/assets/fonts`, converties en TTF car pdfkit ne sait pas extraire un sous-ensemble d'une police WOFF2).
 
+## Rendez-vous et interventions
+
+- **Créneaux** : calculés par l'API à partir des disponibilités (horaires par jour, durée, battement, capacité, techniciens, jours fermés, délai de prévenance, horizon), réglables dans `/admin/planning` > Disponibilités. Un créneau est revérifié au moment de la réservation : deux personnes ne peuvent pas prendre la dernière place.
+- **Parcours** : réservation sur `/rendez-vous` (référence `INT-AAAA-NNNN`) → l'admin affecte un technicien → le technicien passe « en route », « en cours », « terminée » depuis son téléphone, remplit le rapport (travaux, temps, matériel, photos) et fait signer le client à l'écran → intervention « validée », rapport PDF dans l'espace client.
+- **Temps réel** : Socket.io sur le même port que l'API (`/socket.io`), authentifié par le jeton d'accès, ou par un jeton de suivi en lecture seule pour la page publique `/suivi` (référence + téléphone ou email).
+- **Report et annulation** : en ligne jusqu'à `cancelCutoffHours` avant l'intervention (24 h par défaut).
+- **Rappels** : email la veille, vérifié toutes les 15 minutes (node-cron).
+- **Photos** : JPEG ou PNG, 5 Mo maximum, contenu réel vérifié. Stockées dans Cloudinary en ressources privées si `CLOUDINARY_*` est renseigné, sinon dans `server/uploads` (développement). Elles ne sont jamais publiques : l'API les sert après contrôle des droits.
+
 ## Charte graphique
 
 `client/src/brand/tokens.json` est la source de vérité : `npm run tokens -w client` (lancé automatiquement avant `dev` et `build`) génère `client/src/brand/tokens.css` (variables CSS clair/sombre, thème Tailwind, styles `text-h1`, `text-body`…). La vitrine des composants est sur `/design-system` en développement.

@@ -6,10 +6,6 @@ import { normalizePath } from '~/lib/seo';
 
 /** Rubriques des espaces livrées dans les phases suivantes : titre et contenu prévu. */
 const sections: Record<string, { title: string; lead: string }> = {
-  '/espace-client/rendez-vous': {
-    title: 'Mes rendez-vous',
-    lead: 'Vos interventions planifiées, leur suivi en temps réel et les rapports signés.',
-  },
   '/espace-client/tickets': {
     title: 'Support',
     lead: 'Vos demandes d’assistance et les échanges avec notre équipe.',
@@ -25,10 +21,6 @@ const sections: Record<string, { title: string; lead: string }> = {
   '/technicien/tickets': {
     title: 'Tickets assignés',
     lead: 'Les demandes de support qui vous sont confiées.',
-  },
-  '/admin/planning': {
-    title: 'Planning',
-    lead: 'Vue jour et semaine des interventions, déplacement et réassignation.',
   },
   '/admin/tickets': { title: 'Tickets', lead: 'Vue kanban et liste, assignation, notes internes.' },
   '/admin/clients': {

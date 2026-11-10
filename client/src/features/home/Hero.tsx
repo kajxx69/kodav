@@ -5,6 +5,8 @@ import { NetworkPattern } from '~/components/site/NetworkPattern';
 import { ProfileSelector } from '~/components/site/ProfileSelector';
 import { Button } from '~/components/ui';
 import type { ProfileContent } from '~/content/profiles';
+import { NextSlotBadge } from '~/features/appointments/SlotPicker';
+import { useHydrated } from '~/lib/useHydrated';
 
 export function Hero({
   tagline,
@@ -15,6 +17,8 @@ export function Hero({
   content: ProfileContent;
   contentKey: string;
 }) {
+  // Disponibilité réelle : calculée en direct, donc affichée après l'hydratation.
+  const hydrated = useHydrated();
   return (
     <section className="on-band relative overflow-hidden bg-band text-on-band">
       <NetworkPattern className="absolute top-1/2 -right-24 hidden h-[120%] -translate-y-1/2 text-slate lg:block" />
@@ -49,6 +53,8 @@ export function Hero({
               <Link to={content.secondaryCta.to}>{content.secondaryCta.label}</Link>
             </Button>
           </div>
+
+          {hydrated && <NextSlotBadge onBand className="w-fit" />}
 
           <ul className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-6">
             {content.highlights.map((h) => (

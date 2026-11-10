@@ -25,7 +25,7 @@ function isNotFound(err: unknown) {
 /** Réponses partagées entre les pages pré-rendues (paramètres et catalogue sur chaque page). */
 const buildCache = new Map<string, Promise<unknown>>();
 /** React Router abandonne une page après 10 s : on rend la main avant. */
-const BUILD_TIMEOUT_MS = 8000;
+const BUILD_TIMEOUT_MS = 5000;
 
 function withTimeout<T>(promise: Promise<T>) {
   return Promise.race([

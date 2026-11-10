@@ -11,6 +11,11 @@ import { Faq } from '../modules/content/content.model.js';
 import { Plan } from '../modules/plans/plans.model.js';
 import { PricingRule } from '../modules/pricing/pricing.model.js';
 import { SETTINGS_KEY, Settings } from '../modules/settings/settings.model.js';
+import {
+  AVAILABILITY_KEY,
+  AvailabilitySettings,
+  defaultAvailability,
+} from '../modules/appointments/appointment.model.js';
 
 /**
  * Données de démarrage idempotentes : `$setOnInsert` n'écrase jamais ce qui a été
@@ -96,6 +101,13 @@ export async function seedDatabase() {
     );
     track('faqs', res.upsertedCount);
   }
+
+  const availability = await AvailabilitySettings.updateOne(
+    { key: AVAILABILITY_KEY },
+    { $setOnInsert: { key: AVAILABILITY_KEY, ...defaultAvailability } },
+    { upsert: true },
+  );
+  track('availability', availability.upsertedCount);
 
   return counts;
 }

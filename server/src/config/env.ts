@@ -44,6 +44,11 @@ const envSchema = z
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
     MAIL_FROM: z.string().default('KODAV Technologies <contact@kodav.ci>'),
+    CLOUDINARY_CLOUD_NAME: z.string().optional(),
+    CLOUDINARY_API_KEY: z.string().optional(),
+    CLOUDINARY_API_SECRET: z.string().optional(),
+    /** Dossier des fichiers envoyés quand Cloudinary n'est pas configuré (développement). */
+    UPLOAD_DIR: z.string().default('uploads'),
     SEED_ADMIN_EMAIL: z.string().optional(),
     SEED_ADMIN_PASSWORD: z.string().optional(),
     SEED_TEST_PASSWORD: z.string().optional(),

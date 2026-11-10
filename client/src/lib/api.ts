@@ -130,3 +130,19 @@ export async function openProtectedFile(path: string) {
     throw err;
   }
 }
+
+/** Image protégée (photo de rapport) en URL locale, à libérer avec URL.revokeObjectURL. */
+export async function fetchProtectedBlobUrl(path: string) {
+  const load = (token: string | null) =>
+    fetch(`${API_URL}${path}`, {
+      credentials: 'include',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  let res = await load(useAuthStore.getState().accessToken);
+  if (res.status === 401) {
+    const session = await refreshSession();
+    if (session) res = await load(session.accessToken);
+  }
+  if (!res.ok) throw new ApiRequestError(res.status, 'FILE_ERROR', 'Image indisponible');
+  return URL.createObjectURL(await res.blob());
+}

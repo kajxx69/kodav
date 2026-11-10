@@ -4,6 +4,8 @@ import { createApp } from './app.js';
 import { connectDatabase, disconnectDatabase } from './config/db.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
+import { initSocket } from './lib/socket.js';
+import { canJoinAppointment, sendReminders } from './modules/appointments/appointment.service.js';
 import { expireQuotes } from './modules/quotes/quote.service.js';
 
 async function main() {
@@ -15,8 +17,13 @@ async function main() {
     expireQuotes().catch((err: unknown) => logger.error({ err }, 'Expiration des devis'));
   void runExpiry();
   cron.schedule('15 2 * * *', runExpiry, { timezone: 'Africa/Abidjan' });
+  // Rappels la veille : vérification toutes les 15 minutes.
+  cron.schedule('*/15 * * * *', () => {
+    sendReminders().catch((err: unknown) => logger.error({ err }, 'Rappels d’intervention'));
+  });
 
   const server = http.createServer(createApp());
+  initSocket(server, canJoinAppointment);
   server.listen(env.PORT, () => {
     logger.info(`API KODAV prête sur ${env.API_URL}/api/v1 (${env.NODE_ENV})`);
   });

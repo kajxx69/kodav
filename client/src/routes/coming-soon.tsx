@@ -7,16 +7,6 @@ import { normalizePath, pageMeta } from '~/lib/seo';
 import type { Route } from './+types/coming-soon';
 
 const pages: Record<string, { title: string; lead: string; subject: string }> = {
-  '/rendez-vous': {
-    title: 'Prendre rendez-vous',
-    lead: 'La réservation de créneaux en ligne arrive très bientôt.',
-    subject: 'Demande de rendez-vous',
-  },
-  '/suivi': {
-    title: 'Suivre ma demande',
-    lead: 'Le suivi en temps réel de vos interventions arrive très bientôt.',
-    subject: 'Suivi de ma demande',
-  },
   '/bilan-informatique': {
     title: 'Bilan de santé informatique',
     lead: 'Évaluez en quelques minutes la sécurité et la fiabilité de votre informatique.',

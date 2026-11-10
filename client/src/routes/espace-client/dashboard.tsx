@@ -1,4 +1,11 @@
-import { QUOTE_STATUS_LABELS, type Paginated, type QuoteDto } from '@kodav/shared';
+import {
+  APPOINTMENT_STATUS_LABELS,
+  QUOTE_STATUS_LABELS,
+  type AppointmentDto,
+  type Paginated,
+  type QuoteDto,
+} from '@kodav/shared';
+import { formatSlot } from '~/features/appointments/SlotPicker';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarClock, FileText, LifeBuoy, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -65,6 +72,30 @@ function OpenQuotes() {
   );
 }
 
+function NextAppointment() {
+  const query = useQuery({
+    queryKey: ['private', 'appointments'],
+    queryFn: () => apiRequest<AppointmentDto[]>('/appointments'),
+  });
+  if (query.isPending) return <Skeleton className="h-12" />;
+  if (query.isError) return <p>Impossible de charger vos rendez-vous.</p>;
+  const next = query.data
+    .filter((a) => ['demande_recue', 'planifiee', 'en_route', 'en_cours'].includes(a.status))
+    .sort((a, b) => a.start.localeCompare(b.start))[0];
+  if (!next) return <p>Aucun rendez-vous planifié.</p>;
+  return (
+    <Link
+      to={`/espace-client/rendez-vous/${next.id}`}
+      className="flex flex-col gap-1 hover:text-ink"
+    >
+      <span className="text-ink first-letter:uppercase">{formatSlot(next.start)}</span>
+      <span>
+        {next.reference} · {APPOINTMENT_STATUS_LABELS[next.status]}
+      </span>
+    </Link>
+  );
+}
+
 export default function ClientDashboard() {
   const user = useAuthStore((s) => s.user);
   const welcome = (useLocation().state as { welcome?: boolean } | null)?.welcome;
@@ -103,7 +134,7 @@ export default function ClientDashboard() {
         <SummaryCard
           icon={CalendarClock}
           title="Prochain rendez-vous"
-          empty="Aucun rendez-vous planifié."
+          empty={<NextAppointment />}
           to="/espace-client/rendez-vous"
           linkLabel="Voir mes rendez-vous"
         />

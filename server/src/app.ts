@@ -9,9 +9,16 @@ import { logger } from './config/logger.js';
 import { AppError } from './lib/http.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.js';
 import { mongoSanitize } from './middlewares/sanitize.js';
+import { adminAppointmentsRouter } from './modules/admin/admin.appointments.routes.js';
 import { adminCatalogRouter } from './modules/admin/admin.catalog.routes.js';
 import { adminQuotesRouter } from './modules/admin/admin.quotes.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
+import {
+  appointmentsRouter,
+  availabilityRouter,
+  trackingRouter,
+} from './modules/appointments/appointment.routes.js';
+import { technicianRouter } from './modules/appointments/technician.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { catalogRouter } from './modules/catalog/catalog.routes.js';
 import { diagnosticRouter } from './modules/diagnostic/diagnostic.routes.js';
@@ -61,7 +68,12 @@ export function createApp() {
   api.use('/pricing', pricingRouter);
   api.use('/diagnostic', diagnosticRouter);
   api.use('/quotes', quotesRouter);
+  api.use('/availability', availabilityRouter);
+  api.use('/appointments', appointmentsRouter);
+  api.use('/tracking', trackingRouter);
+  api.use('/technician', technicianRouter);
   api.use('/admin/quotes', adminQuotesRouter);
+  api.use('/admin', adminAppointmentsRouter);
   api.use('/admin', adminCatalogRouter);
   api.use('/admin', adminRouter);
   app.use('/api/v1', api);

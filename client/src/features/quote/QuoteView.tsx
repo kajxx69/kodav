@@ -207,7 +207,7 @@ export function QuoteDecision({
         title="Devis accepté"
         action={
           <Button asChild>
-            <Link to={`/rendez-vous?devis=${quote.reference}`}>Planifier l’intervention</Link>
+            <Link to={`/rendez-vous?devis=${quote.id}`}>Planifier l’intervention</Link>
           </Button>
         }
       >
