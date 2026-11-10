@@ -59,3 +59,19 @@ export type LeadStatus = (typeof LEAD_STATUSES)[number];
 
 export const TICKET_PRIORITIES = ['basse', 'normale', 'haute', 'critique'] as const;
 export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
+
+export const ORG_ROLES = ['owner', 'member'] as const;
+export type OrgRole = (typeof ORG_ROLES)[number];
+
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  client: 'Client',
+  technicien: 'Technicien',
+  admin: 'Administrateur',
+};
+
+/** Page d'accueil de chaque rôle après connexion. */
+export const ROLE_HOME: Record<UserRole, string> = {
+  client: '/espace-client',
+  technicien: '/technicien',
+  admin: '/admin',
+};

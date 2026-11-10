@@ -1,6 +1,51 @@
-import { type RouteConfig, index, layout, route } from '@react-router/dev/routes';
+import { type RouteConfig, index, layout, prefix, route } from '@react-router/dev/routes';
+
+/** Rubriques d'un espace livrées plus tard : page d'attente commune (un id par route). */
+const placeholders = (space: string, paths: string[]) =>
+  paths.map((path) => route(path, 'routes/space-placeholder.tsx', { id: `${space}-${path}` }));
+
+const profile = (space: string) =>
+  route('profil', 'routes/space-profile.tsx', { id: `${space}-profile` });
 
 export default [
+  layout('routes/_auth.tsx', [
+    route('connexion', 'routes/auth/login.tsx'),
+    route('inscription', 'routes/auth/register.tsx'),
+    route('mot-de-passe-oublie', 'routes/auth/forgot-password.tsx'),
+    route('reinitialiser-mot-de-passe', 'routes/auth/reset-password.tsx'),
+    route('verifier-email', 'routes/auth/verify-email.tsx'),
+  ]),
+  ...prefix('espace-client', [
+    layout('routes/espace-client/layout.tsx', [
+      index('routes/espace-client/dashboard.tsx'),
+      ...placeholders('client', ['devis', 'rendez-vous', 'tickets', 'parc', 'documents']),
+      profile('client'),
+    ]),
+  ]),
+  ...prefix('technicien', [
+    layout('routes/technicien/layout.tsx', [
+      index('routes/technicien/today.tsx'),
+      ...placeholders('technician', ['tickets']),
+      profile('technician'),
+    ]),
+  ]),
+  ...prefix('admin', [
+    layout('routes/admin/layout.tsx', [
+      index('routes/admin/dashboard.tsx'),
+      route('utilisateurs', 'routes/admin/users.tsx'),
+      ...placeholders('admin', [
+        'devis',
+        'planning',
+        'tickets',
+        'clients',
+        'prospects',
+        'catalogue',
+        'contenu',
+        'parametres',
+      ]),
+      profile('admin'),
+    ]),
+  ]),
   layout('routes/_public.tsx', [
     index('routes/home.tsx'),
     route('services', 'routes/services.tsx'),

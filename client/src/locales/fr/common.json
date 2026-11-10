@@ -12,7 +12,8 @@
     "menu": "Menu",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
-    "main": "Navigation principale"
+    "main": "Navigation principale",
+    "account": "Mon espace"
   },
   "cta": {
     "quote": "Demander un devis",

@@ -1,4 +1,5 @@
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
@@ -8,10 +9,13 @@ import { logger } from './config/logger.js';
 import { AppError } from './lib/http.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.js';
 import { mongoSanitize } from './middlewares/sanitize.js';
+import { adminRouter } from './modules/admin/admin.routes.js';
+import { authRouter } from './modules/auth/auth.routes.js';
 import { catalogRouter } from './modules/catalog/catalog.routes.js';
 import { contentRouter } from './modules/content/content.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { contactRouter } from './modules/leads/contact.routes.js';
+import { organizationsRouter } from './modules/organizations/organization.routes.js';
 import { plansRouter } from './modules/plans/plans.routes.js';
 import { settingsRouter } from './modules/settings/settings.routes.js';
 
@@ -37,6 +41,7 @@ export function createApp() {
   app.use(pinoHttp({ logger, autoLogging: { ignore: (req) => req.url === '/api/v1/health' } }));
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: false, limit: '1mb' }));
+  app.use(cookieParser());
   app.use(mongoSanitize);
 
   const api = express.Router();
@@ -46,6 +51,9 @@ export function createApp() {
   api.use('/plans', plansRouter);
   api.use('/content', contentRouter);
   api.use('/contact', contactRouter);
+  api.use('/auth', authRouter);
+  api.use('/organizations', organizationsRouter);
+  api.use('/admin', adminRouter);
   app.use('/api/v1', api);
 
   app.use(notFoundHandler);

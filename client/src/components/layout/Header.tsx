@@ -1,5 +1,5 @@
-import { ChevronDown, Menu } from 'lucide-react';
-import { CLIENT_PROFILES, PROFILE_META } from '@kodav/shared';
+import { ChevronDown, Menu, UserRound } from 'lucide-react';
+import { CLIENT_PROFILES, PROFILE_META, ROLE_HOME } from '@kodav/shared';
 import { NavigationMenu } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { Logo } from '~/components/site/Logo';
 import { Button } from '~/components/ui';
 import { cn } from '~/lib/cn';
 import { usePoles } from '~/lib/useSettings';
+import { useAuthStore } from '~/stores/auth';
 import { MobileNav } from './MobileNav';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -30,6 +31,9 @@ export function Header() {
   const { t } = useTranslation();
   const poles = usePoles();
   const [menuOpen, setMenuOpen] = useState(false);
+  // Visiteur anonyme : la page de connexion ; déjà connecté : directement son espace.
+  const role = useAuthStore((s) => s.user?.role);
+  const accountPath = role ? ROLE_HOME[role] : '/connexion';
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-surface/85 backdrop-blur-md supports-[not(backdrop-filter:blur(0))]:bg-surface">
@@ -127,6 +131,17 @@ export function Header() {
 
         <div className="flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
+          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+            <Link to={accountPath}>
+              <UserRound aria-hidden />
+              {t('nav.account')}
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="icon" className="sm:hidden">
+            <Link to={accountPath} aria-label={t('nav.account')}>
+              <UserRound className="size-5" aria-hidden />
+            </Link>
+          </Button>
           {/* L'or est réservé au bouton principal de la page : ici, bouton secondaire. */}
           <Button asChild variant="secondary" size="sm" className="hidden sm:inline-flex">
             <Link to="/devis">{t('cta.quote')}</Link>

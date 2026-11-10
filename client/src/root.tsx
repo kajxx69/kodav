@@ -15,6 +15,7 @@ import { NotFoundContent } from '~/components/site/NotFoundContent';
 import { fetchAtBuild, fetchInBrowser } from '~/lib/loaderData';
 import { queries } from '~/lib/queries';
 import { queryClient } from '~/lib/queryClient';
+import { ensureSession } from '~/lib/session';
 import type { RootData } from '~/lib/useSettings';
 import { useProfileStore } from '~/stores/profile';
 import { themeInitScript, useThemeStore } from '~/stores/theme';
@@ -81,6 +82,8 @@ function Providers({ children }: { children: ReactNode }) {
   useEffect(() => {
     useThemeStore.getState().hydrate();
     useProfileStore.getState().hydrate();
+    // Session restaurée en arrière-plan (lien « Mon espace » du header).
+    void ensureSession();
   }, []);
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,5 +1,5 @@
-import { ChevronDown } from 'lucide-react';
-import { useId, type ComponentProps, type ReactNode } from 'react';
+import { ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { useId, useState, type ComponentProps, type ReactNode } from 'react';
 import { cn } from '~/lib/cn';
 
 const controlBase =
@@ -224,5 +224,53 @@ export function Checkbox({
         </p>
       )}
     </div>
+  );
+}
+
+/** Mot de passe avec bouton afficher / masquer (saisie plus sûre sur mobile). */
+export function PasswordField({
+  label,
+  help,
+  error,
+  containerClassName,
+  className,
+  id,
+  required,
+  ...props
+}: Omit<ComponentProps<'input'>, 'type'> & CommonProps) {
+  const autoId = useId();
+  const fieldId = id ?? autoId;
+  const [visible, setVisible] = useState(false);
+  const Icon = visible ? EyeOff : Eye;
+  return (
+    <FieldShell
+      id={fieldId}
+      label={label}
+      help={help}
+      error={error}
+      required={required}
+      className={containerClassName}
+    >
+      <div className="relative flex items-center">
+        <input
+          id={fieldId}
+          type={visible ? 'text' : 'password'}
+          required={required}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy(fieldId, help, error)}
+          className={cn(controlBase, 'h-11 pr-12 pl-3', className)}
+          {...props}
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          aria-pressed={visible}
+          className="absolute right-1 grid size-9 place-items-center rounded-md text-ink-muted hover:bg-surface-sunken hover:text-ink"
+        >
+          <Icon className="size-5" aria-hidden />
+        </button>
+      </div>
+    </FieldShell>
   );
 }
