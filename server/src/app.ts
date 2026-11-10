@@ -8,7 +8,12 @@ import { logger } from './config/logger.js';
 import { AppError } from './lib/http.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.js';
 import { mongoSanitize } from './middlewares/sanitize.js';
+import { catalogRouter } from './modules/catalog/catalog.routes.js';
+import { contentRouter } from './modules/content/content.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
+import { contactRouter } from './modules/leads/contact.routes.js';
+import { plansRouter } from './modules/plans/plans.routes.js';
+import { settingsRouter } from './modules/settings/settings.routes.js';
 
 export function createApp() {
   const app = express();
@@ -36,6 +41,11 @@ export function createApp() {
 
   const api = express.Router();
   api.use('/health', healthRouter);
+  api.use('/settings', settingsRouter);
+  api.use('/catalog', catalogRouter);
+  api.use('/plans', plansRouter);
+  api.use('/content', contentRouter);
+  api.use('/contact', contactRouter);
   app.use('/api/v1', api);
 
   app.use(notFoundHandler);

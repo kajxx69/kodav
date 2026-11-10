@@ -1,0 +1,64 @@
+{
+  "skipToContent": "Aller au contenu",
+  "nav": {
+    "services": "Services",
+    "solutions": "Solutions",
+    "contracts": "Contrats de maintenance",
+    "projects": "Réalisations",
+    "about": "À propos",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "allServices": "Tous nos services",
+    "menu": "Menu",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "main": "Navigation principale"
+  },
+  "cta": {
+    "quote": "Demander un devis",
+    "appointment": "Prendre rendez-vous",
+    "diagnostic": "Lancer le diagnostic",
+    "contact": "Nous contacter",
+    "track": "Suivre ma demande",
+    "learnMore": "En savoir plus",
+    "seeServices": "Voir les services",
+    "seeAll": "Tout voir",
+    "back": "Retour"
+  },
+  "theme": {
+    "label": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "profile": {
+    "question": "Je suis…",
+    "reset": "Afficher tout"
+  },
+  "contactFab": {
+    "whatsapp": "Écrire sur WhatsApp",
+    "call": "Appeler"
+  },
+  "price": {
+    "from": "À partir de",
+    "onQuote": "Sur devis",
+    "per": "par",
+    "indicative": "Tarif indicatif, confirmé sur devis."
+  },
+  "states": {
+    "loading": "Chargement…",
+    "error": "Le contenu n'a pas pu être chargé.",
+    "retry": "Réessayer",
+    "empty": "Aucun élément pour le moment."
+  },
+  "footer": {
+    "hours": "Horaires",
+    "contact": "Coordonnées",
+    "services": "Services",
+    "company": "Entreprise",
+    "legal": "Mentions légales",
+    "privacy": "Confidentialité",
+    "terms": "CGV",
+    "rights": "Tous droits réservés."
+  }
+}

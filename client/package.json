@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "react-router dev",
-    "build": "react-router build",
+    "tokens": "node scripts/build-tokens.ts",
+    "dev": "npm run tokens && react-router dev",
+    "build": "npm run tokens && react-router build",
     "preview": "vite preview --outDir build/client",
     "test": "vitest run",
     "typecheck": "react-router typegen && tsc --noEmit"
@@ -26,11 +27,24 @@
     "vite": "^8.3.7"
   },
   "dependencies": {
+    "@hookform/resolvers": "^7.0.5",
     "@kodav/shared": "^0.1.0",
     "@react-router/node": "^8.5.1",
+    "@tanstack/react-query": "^5.107.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "i18next": "^27.1.0",
+    "isbot": "^5",
+    "lucide-react": "^1.71.0",
+    "motion": "^14.12.0",
+    "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "react-hook-form": "^7.91.0",
+    "react-i18next": "^18.0.1",
     "react-router": "^8.5.1",
-    "isbot": "^5"
+    "tailwind-merge": "^3.7.0",
+    "zustand": "^5.1.0"
   }
 }

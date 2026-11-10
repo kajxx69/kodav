@@ -25,4 +25,16 @@ Vérification : `GET http://localhost:4000/api/v1/health`.
 | `npm run typecheck` | vérification TypeScript                                                         |
 | `npm run seed`      | données de démarrage                                                            |
 
+## Charte graphique
+
+`client/src/brand/tokens.json` est la source de vérité : `npm run tokens -w client` (lancé automatiquement avant `dev` et `build`) génère `client/src/brand/tokens.css` (variables CSS clair/sombre, thème Tailwind, styles `text-h1`, `text-body`…). La vitrine des composants est sur `/design-system` en développement.
+
+## Pré-rendu
+
+Au build, les pages publiques sont générées en HTML statique avec le contenu de l'API (`VITE_API_URL`) : lancez l'API avant `npm run build` pour un HTML complet. Si l'API est injoignable, le build réussit quand même (liste des pages issue du seed, contenu chargé dans le navigateur). Dans le navigateur, chaque page se rafraîchit depuis l'API, donc une modification faite dans l'admin est visible sans rebuild.
+
+## À savoir
+
+- `NODE_ENV=production` dans votre shell empêche l'installation des devDependencies et fait échouer les tests React : utilisez `npm install --include=dev` et `NODE_ENV=test npm test`, ou retirez cette variable de votre profil.
+
 Cadrage technique : [docs/phase-0-cadrage.md](docs/phase-0-cadrage.md).

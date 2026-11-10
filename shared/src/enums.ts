@@ -23,3 +23,39 @@ export const ABIDJAN_COMMUNES = [
   'Yopougon',
 ] as const;
 export type AbidjanCommune = (typeof ABIDJAN_COMMUNES)[number];
+
+/** Libellés et slugs des pages « Solutions » par profil. */
+export const PROFILE_META: Record<
+  ClientProfile,
+  { label: string; plural: string; solutionSlug: string }
+> = {
+  particulier: { label: 'Particulier', plural: 'Particuliers', solutionSlug: 'particuliers' },
+  pme: { label: 'PME / commerce', plural: 'PME et commerces', solutionSlug: 'pme' },
+  ecole: { label: 'École', plural: 'Écoles et centres de formation', solutionSlug: 'ecoles' },
+  grande_entreprise: {
+    label: 'Grande entreprise',
+    plural: 'Grandes entreprises et administrations',
+    solutionSlug: 'entreprises',
+  },
+};
+
+export const INTERVENTION_MODE_LABELS: Record<InterventionMode, string> = {
+  sur_site: 'Sur site',
+  distance: 'À distance',
+  atelier: 'En atelier',
+};
+
+export const PRICING_MODES = ['forfait', 'par_unite', 'sur_devis'] as const;
+export type PricingMode = (typeof PRICING_MODES)[number];
+
+export const DURATION_UNITS = ['heure', 'jour', 'semaine'] as const;
+export type DurationUnit = (typeof DURATION_UNITS)[number];
+
+export const LEAD_SOURCES = ['diagnostic', 'bilan', 'contact', 'devis_visiteur'] as const;
+export type LeadSource = (typeof LEAD_SOURCES)[number];
+
+export const LEAD_STATUSES = ['nouveau', 'contacte', 'converti', 'perdu'] as const;
+export type LeadStatus = (typeof LEAD_STATUSES)[number];
+
+export const TICKET_PRIORITIES = ['basse', 'normale', 'haute', 'critique'] as const;
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
