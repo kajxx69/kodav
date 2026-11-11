@@ -10,13 +10,17 @@ export function Reveal({
   children,
   delay = 0,
   className,
+  as = 'div',
 }: {
   children: ReactNode;
   delay?: number;
   className?: string;
+  /** `li` dans une liste : l'élément animé est lui-même l'élément de liste. */
+  as?: 'div' | 'li';
 }) {
+  const Component = as === 'li' ? motion.li : motion.div;
   return (
-    <motion.div
+    <Component
       data-reveal
       className={className}
       initial={{ opacity: 0, y: 16 }}
@@ -25,6 +29,6 @@ export function Reveal({
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
-    </motion.div>
+    </Component>
   );
 }

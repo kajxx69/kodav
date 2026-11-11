@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router';
+import { CommandPalette } from '~/components/layout/CommandPalette';
 import { ContactFab } from '~/components/layout/ContactFab';
 import { Footer } from '~/components/layout/Footer';
 import { Header } from '~/components/layout/Header';
@@ -34,6 +35,7 @@ export default function PublicLayout() {
       </motion.main>
       <Footer />
       <ContactFab />
+      <CommandPalette />
     </div>
   );
 }

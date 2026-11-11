@@ -28,3 +28,23 @@ export const maintenancePlanSchema = z.object({
   isPlaceholderPrice: z.boolean(),
 });
 export type MaintenancePlan = z.infer<typeof maintenancePlanSchema>;
+
+type PlanPricing = Pick<
+  MaintenancePlan,
+  'basePriceMonthly' | 'pricePerSeatMonthly' | 'annualDiscountPercent'
+>;
+
+/** Prix mensuel d'une formule pour un nombre de postes ; remise appliquée en facturation annuelle. */
+export function planMonthlyPrice(plan: PlanPricing, seats: number, cycle: 'mensuel' | 'annuel') {
+  const monthly = plan.basePriceMonthly + plan.pricePerSeatMonthly * seats;
+  return cycle === 'annuel'
+    ? Math.round(monthly * (1 - plan.annualDiscountPercent / 100))
+    : monthly;
+}
+
+export function planCoversSeats(
+  plan: Pick<MaintenancePlan, 'minSeats' | 'maxSeats'>,
+  seats: number,
+) {
+  return seats >= plan.minSeats && (plan.maxSeats === null || seats <= plan.maxSeats);
+}

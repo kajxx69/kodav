@@ -160,12 +160,12 @@ export default function ServiceDetail({ loaderData, params }: Route.ComponentPro
               </div>
               <dl className="flex flex-col gap-3 border-t border-line pt-4">
                 {facts.map(({ icon: Icon, label, value }) => (
-                  <div key={label} className="flex gap-3 text-body-sm">
-                    <Icon className="mt-0.5 size-4 shrink-0 text-ink-muted" aria-hidden />
-                    <div>
-                      <dt className="text-caption text-ink-muted">{label}</dt>
-                      <dd>{value}</dd>
-                    </div>
+                  <div key={label} className="grid grid-cols-[1rem_1fr] gap-x-3 text-body-sm">
+                    <dt className="col-span-2 flex items-center gap-3 text-caption text-ink-muted">
+                      <Icon className="size-4 shrink-0" aria-hidden />
+                      {label}
+                    </dt>
+                    <dd className="col-start-2">{value}</dd>
                   </div>
                 ))}
               </dl>

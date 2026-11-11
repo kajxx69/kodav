@@ -25,6 +25,7 @@ Vérification : `GET http://localhost:4000/api/v1/health`.
 | `npm run lint`      | ESLint + vérification Prettier                                                  |
 | `npm run typecheck` | vérification TypeScript                                                         |
 | `npm run seed`      | données de démarrage                                                            |
+| `npm run test:e2e`  | parcours clés dans Chrome (Playwright), sur une API isolée                      |
 
 ## Comptes et authentification
 
@@ -82,6 +83,35 @@ Sessions : jeton d'accès de 15 min gardé en mémoire côté navigateur, refres
 - **Modèles d'emails** : objet et texte modifiables dans Paramètres, variables `{{prenom}}`, `{{reference}}`… ; sans modèle, le texte par défaut s'applique.
 - **Journal d'audit** : chaque modification sensible (prix, devis, rendez-vous, utilisateurs, paramètres, révélation de clé) est tracée avec son auteur.
 - **Exports CSV** : prospects, clients, devis, factures, interventions, tickets ; séparateur point-virgule, compatible Excel.
+
+## Bilan, comparateur et recherche
+
+- **Bilan de santé informatique** (`/bilan-informatique`) : 12 questions (sauvegardes, antivirus, licences, mots de passe, Wi-Fi, onduleurs…), score sur 100 calculé de la même façon dans le navigateur et sur l'API (`shared/src/assessment.ts`), points faibles reliés aux services du catalogue. Le rapport PDF détaillé est envoyé par email contre les coordonnées : le prospect (source « Bilan ») et le résultat (`ItAssessment`) sont enregistrés, les administrateurs notifiés. Le barème est indicatif et présenté comme tel.
+- **Comparateur de formules** (`/contrats-maintenance`) : bascule mensuel/annuel et simulateur selon le nombre de postes ; la formule adaptée est mise en avant et le devis est pré-rempli.
+- **Palette de recherche** : Ctrl+K (Cmd+K sur Mac) ou bouton du header ; services, pages, FAQ et actions (« Réserver », « Suivre ma demande »), sans tenir compte des accents.
+
+## SEO et PWA
+
+- Balises par page (titre, description, canonique, Open Graph avec `og-image.png`), données structurées `LocalBusiness`, `Service` et `FAQPage`.
+- `sitemap.xml` et `robots.txt` générés au build à partir des pages pré-rendues, avec `VITE_SITE_URL`.
+- PWA installable : `manifest.webmanifest`, icônes de la charte, service worker léger (`client/public/sw.js`) enregistré en production seulement. Les pages publiques déjà visitées restent consultables hors connexion ; les espaces connectés et l'API ne sont jamais mis en cache.
+
+## Tests de bout en bout
+
+`npm run test:e2e` construit le front pour une API de test, démarre cette API sur une base MongoDB **en mémoire** (catalogue et comptes de test créés au démarrage, aucun email envoyé, mot de passe aléatoire à chaque exécution), puis lance Playwright :
+
+- pages publiques sans erreur JavaScript et sans violation d'accessibilité grave (axe-core, WCAG 2.1 AA) ;
+- sitemap, robots et manifeste ;
+- profil « Je suis… » mémorisé, palette Ctrl+K, comparateur ;
+- Bilan de santé complet ;
+- demande de devis visiteur traitée par l'admin, réservation d'intervention et suivi public ;
+- arrivée de chaque rôle dans son espace, back-office refusé aux visiteurs.
+
+Navigateur : `npx playwright install chromium` une fois, ou Chrome du poste avec `PW_CHANNEL=chrome npm run test:e2e`.
+
+## Déploiement
+
+Front sur Netlify ou Vercel, API sur Render ou Railway, base sur Atlas, nom de domaine : voir [docs/deploiement.md](docs/deploiement.md).
 
 ## Charte graphique
 

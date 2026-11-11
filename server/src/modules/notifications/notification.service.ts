@@ -3,6 +3,7 @@ import type { Types } from 'mongoose';
 import { logger } from '../../config/logger.js';
 import { emitTo } from '../../lib/socket.js';
 import { Notification, type NotificationDoc } from '../support/support.model.js';
+import { User } from '../users/user.model.js';
 
 export type NotificationInput = {
   type: NotificationType;
@@ -40,4 +41,13 @@ export async function notify(
   } catch (err) {
     logger.error({ err }, 'Notification impossible');
   }
+}
+
+/** Notifie tous les administrateurs actifs. */
+export async function notifyAdmins(input: NotificationInput) {
+  const admins = await User.find({ role: 'admin', isActive: true }, { _id: 1 }).lean();
+  await notify(
+    admins.map((a) => a._id),
+    input,
+  );
 }

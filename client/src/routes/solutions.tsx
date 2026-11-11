@@ -87,11 +87,14 @@ export default function Solution({ loaderData, params }: Route.ComponentProps) {
         />
         <ul className="grid gap-4 sm:grid-cols-2">
           {page.pains.map((pain, i) => (
-            <Reveal key={pain} delay={i * 0.05}>
-              <li className="flex items-start gap-3 rounded-lg border border-line bg-surface-raised p-5">
-                <CircleAlert className="mt-0.5 size-5 shrink-0 text-warning" aria-hidden />
-                <span className="text-body">{pain}</span>
-              </li>
+            <Reveal
+              as="li"
+              key={pain}
+              delay={i * 0.05}
+              className="flex items-start gap-3 rounded-lg border border-line bg-surface-raised p-5"
+            >
+              <CircleAlert className="mt-0.5 size-5 shrink-0 text-warning" aria-hidden />
+              <span className="text-body">{pain}</span>
             </Reveal>
           ))}
         </ul>

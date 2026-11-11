@@ -4,6 +4,7 @@ import { logger } from '../../config/logger.js';
 import { sendOk } from '../../lib/http.js';
 import { publicFormLimiter } from '../../middlewares/rateLimit.js';
 import { verifyTurnstile } from '../../middlewares/turnstile.js';
+import { notifyAdmins } from '../notifications/notification.service.js';
 import { Lead } from './lead.model.js';
 
 export const contactRouter = Router();
@@ -21,7 +22,12 @@ contactRouter.post('/', publicFormLimiter, verifyTurnstile, async (req, res) => 
     consentAt: new Date(),
     ip: req.ip,
   });
-  // L'email de notification à l'équipe arrive avec le module d'emails (phase 3).
   logger.info({ leadId: lead.id }, 'Nouveau message de contact');
+  await notifyAdmins({
+    type: 'lead_new',
+    title: 'Nouveau message de contact',
+    body: `${input.name} · ${input.subject}`,
+    link: '/admin/prospects',
+  });
   sendOk(res, { received: true }, 201);
 });

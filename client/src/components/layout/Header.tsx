@@ -1,4 +1,4 @@
-import { ChevronDown, Menu, UserRound } from 'lucide-react';
+import { ChevronDown, Menu, Search, UserRound } from 'lucide-react';
 import { CLIENT_PROFILES, PROFILE_META, ROLE_HOME } from '@kodav/shared';
 import { NavigationMenu } from 'radix-ui';
 import { useState } from 'react';
@@ -9,7 +9,9 @@ import { Logo } from '~/components/site/Logo';
 import { Button } from '~/components/ui';
 import { cn } from '~/lib/cn';
 import { usePoles } from '~/lib/useSettings';
+import { useHydrated } from '~/lib/useHydrated';
 import { useAuthStore } from '~/stores/auth';
+import { useCommandPalette } from './CommandPalette';
 import { MobileNav } from './MobileNav';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -130,6 +132,7 @@ export function Header() {
         </NavigationMenu.Root>
 
         <div className="flex items-center gap-1 sm:gap-2">
+          <SearchButton />
           <ThemeToggle />
           <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
             <Link to={accountPath}>
@@ -160,5 +163,38 @@ export function Header() {
       </div>
       <MobileNav open={menuOpen} onOpenChange={setMenuOpen} poles={poles} />
     </header>
+  );
+}
+
+/** Ouvre la palette de recherche ; le raccourci affiché suit le système (Cmd sur macOS). */
+function SearchButton() {
+  const setOpen = useCommandPalette((s) => s.setOpen);
+  const hydrated = useHydrated();
+  const mac = hydrated && /Mac|iPhone|iPad/.test(navigator.userAgent);
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        className="hidden w-44 justify-start text-ink-muted xl:inline-flex"
+        onClick={() => setOpen(true)}
+        aria-keyshortcuts="Control+K Meta+K"
+      >
+        <Search aria-hidden />
+        Rechercher
+        <kbd className="ml-auto rounded border border-line px-1.5 text-caption">
+          {mac ? '⌘ K' : 'Ctrl K'}
+        </kbd>
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="xl:hidden"
+        aria-label="Rechercher"
+        onClick={() => setOpen(true)}
+      >
+        <Search className="size-5" aria-hidden />
+      </Button>
+    </>
   );
 }

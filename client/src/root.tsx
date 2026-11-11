@@ -29,6 +29,7 @@ export const links: Route.LinksFunction = () => [
   { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
   { rel: 'icon', href: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
   { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+  { rel: 'manifest', href: '/manifest.webmanifest' },
   // Polices du texte courant et des grands titres préchargées (premier affichage).
   { rel: 'preload', href: bodyFont, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
   { rel: 'preload', href: displayFont, as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' },
@@ -78,6 +79,17 @@ export function Layout({ children }: { children: ReactNode }) {
   );
 }
 
+/** PWA : en production seulement, pour ne pas servir de cache pendant le développement. */
+function registerServiceWorker() {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  const register = () =>
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Navigation privée ou HTTP : le site fonctionne sans.
+    });
+  if (document.readyState === 'complete') register();
+  else window.addEventListener('load', register, { once: true });
+}
+
 function Providers({ children }: { children: ReactNode }) {
   // Au pré-rendu, un cache neuf par page : sinon une page hériterait des données d'une autre
   // et son HTML différerait de ce que le navigateur affiche à l'hydratation.
@@ -89,6 +101,7 @@ function Providers({ children }: { children: ReactNode }) {
     useProfileStore.getState().hydrate();
     // Session restaurée en arrière-plan (lien « Mon espace » du header).
     void ensureSession();
+    registerServiceWorker();
   }, []);
   return (
     <QueryClientProvider client={client}>

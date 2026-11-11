@@ -15,7 +15,7 @@ import { UseCases } from '~/features/home/UseCases';
 import { genericContent, profileContent } from '~/content/profiles';
 import { fetchAtBuild, fetchInBrowser, useLiveQuery } from '~/lib/loaderData';
 import { queries } from '~/lib/queries';
-import { brandFromMatches, pageMeta } from '~/lib/seo';
+import { SITE_URL, brandFromMatches, pageMeta } from '~/lib/seo';
 import { useSettings } from '~/lib/useSettings';
 import { useProfileStore } from '~/stores/profile';
 import type { Route } from './+types/home';
@@ -53,6 +53,9 @@ export function meta({ matches }: Route.MetaArgs) {
           name: brand.legalName,
           alternateName: brand.shortName,
           slogan: brand.tagline,
+          url: SITE_URL,
+          logo: `${SITE_URL}/icons/icon-512.png`,
+          image: `${SITE_URL}/og-image.png`,
           email: brand.email,
           ...(/^\+225\d{10}$/.test(brand.phone) ? { telephone: brand.phone } : {}),
           areaServed: { '@type': 'City', name: 'Abidjan' },

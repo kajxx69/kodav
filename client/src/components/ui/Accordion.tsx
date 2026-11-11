@@ -6,21 +6,30 @@ import { cn } from '~/lib/cn';
 export function Accordion({
   items,
   className,
+  defaultValue,
 }: {
   items: { id: string; title: string; content: ReactNode }[];
   className?: string;
+  /** Élément ouvert au départ. */
+  defaultValue?: string;
 }) {
   return (
     <RadixAccordion.Root
       type="single"
       collapsible
+      defaultValue={defaultValue}
       className={cn(
         'divide-y divide-line rounded-lg border border-line bg-surface-raised',
         className,
       )}
     >
       {items.map((item) => (
-        <RadixAccordion.Item key={item.id} value={item.id}>
+        <RadixAccordion.Item
+          key={item.id}
+          value={item.id}
+          id={`item-${item.id}`}
+          className="scroll-mt-24"
+        >
           <RadixAccordion.Header asChild>
             <h3>
               <RadixAccordion.Trigger className="group flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-label text-ink hover:bg-surface-sunken/60 sm:text-body sm:font-semibold">

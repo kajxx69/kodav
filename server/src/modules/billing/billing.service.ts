@@ -1,5 +1,6 @@
 import {
   formatFcfa,
+  planMonthlyPrice,
   type InvoiceDto,
   type SubscriptionDto,
   type TicketPriority,
@@ -278,11 +279,7 @@ export async function saveSubscription(
       { status: 'resiliee', endDate: new Date() },
     );
   }
-  const monthly = plan.basePriceMonthly + plan.pricePerSeatMonthly * input.seats;
-  const price =
-    input.billingCycle === 'annuel'
-      ? Math.round(monthly * (1 - plan.annualDiscountPercent / 100))
-      : monthly;
+  const price = planMonthlyPrice(plan, input.seats, input.billingCycle);
   const sub = await Subscription.create({
     ...owner,
     plan: plan._id,

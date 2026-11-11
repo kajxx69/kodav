@@ -1,5 +1,5 @@
 import { Check, Minus } from 'lucide-react';
-import { formatFcfa, type MaintenancePlan } from '@kodav/shared';
+import { formatFcfa, planCoversSeats, planMonthlyPrice, type MaintenancePlan } from '@kodav/shared';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { PageHero } from '~/components/site/PageHero';
@@ -25,12 +25,12 @@ export function meta({ matches }: Route.MetaArgs) {
 
 type Cycle = 'mensuel' | 'annuel';
 
-/** Prix d'appel affiché (minimum de postes) ; le simulateur détaillé arrive en phase 7. */
-function startingPrice(plan: MaintenancePlan, cycle: Cycle) {
-  const monthly = plan.basePriceMonthly + plan.pricePerSeatMonthly * plan.minSeats;
-  return cycle === 'annuel'
-    ? Math.round(monthly * (1 - plan.annualDiscountPercent / 100))
-    : monthly;
+const MAX_SIMULATED_SEATS = 150;
+
+function seatRange(plan: MaintenancePlan) {
+  return plan.maxSeats
+    ? `${plan.minSeats} à ${plan.maxSeats} postes`
+    : `Dès ${plan.minSeats} postes`;
 }
 
 function FeatureValue({ value }: { value: boolean | string }) {
@@ -43,6 +43,8 @@ function FeatureValue({ value }: { value: boolean | string }) {
 export default function MaintenanceContracts({ loaderData }: Route.ComponentProps) {
   const { data: plans, isError, refetch } = useLiveQuery(queries.plans(), loaderData);
   const [cycle, setCycle] = useState<Cycle>('mensuel');
+  const [seats, setSeats] = useState(10);
+  const fitting = plans?.find((p) => planCoversSeats(p, seats));
   const maxDiscount = Math.max(0, ...(plans ?? []).map((p) => p.annualDiscountPercent));
   const featureRows = plans?.[plans.length - 1]?.features ?? [];
 
@@ -85,6 +87,32 @@ export default function MaintenanceContracts({ loaderData }: Route.ComponentProp
           </div>
         </div>
 
+        <div className="mb-8 flex flex-col gap-3 rounded-lg border border-line bg-surface-raised p-5 sm:flex-row sm:items-center sm:gap-6">
+          <label htmlFor="seats-range" className="text-label text-ink sm:w-48">
+            Nombre de postes à couvrir
+          </label>
+          <input
+            id="seats-range"
+            type="range"
+            min={1}
+            max={MAX_SIMULATED_SEATS}
+            value={seats}
+            onChange={(e) => setSeats(Number(e.target.value))}
+            className="flex-1 accent-[var(--color-secondary)]"
+            aria-valuetext={`${seats} postes`}
+          />
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={1000}
+            value={seats}
+            onChange={(e) => setSeats(Math.min(1000, Math.max(1, Number(e.target.value) || 1)))}
+            aria-label="Nombre de postes"
+            className="h-11 w-24 rounded-md border border-field-border bg-surface px-3 text-body tabular-nums"
+          />
+        </div>
+
         {isError && !plans && <ErrorState onRetry={() => void refetch()} />}
         {!plans && !isError && <CardGridSkeleton />}
         {plans && (
@@ -95,33 +123,64 @@ export default function MaintenanceContracts({ loaderData }: Route.ComponentProp
                   <Card
                     className={cn(
                       'flex h-full flex-col gap-4',
-                      plan.highlighted && 'border-gold ring-1 ring-gold',
+                      plan === fitting
+                        ? 'border-secondary ring-1 ring-secondary'
+                        : plan.highlighted && !fitting && 'border-gold ring-1 ring-gold',
                     )}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="text-h3">{plan.name}</h3>
-                      {plan.highlighted && <Badge variant="gold">Recommandée</Badge>}
+                      {plan === fitting ? (
+                        <Badge variant="info">Adaptée à {seats} postes</Badge>
+                      ) : (
+                        plan.highlighted && <Badge variant="gold">Recommandée</Badge>
+                      )}
                     </div>
                     <p className="text-body-sm text-ink-muted">{plan.tagline}</p>
-                    <p aria-live="polite">
-                      <span className="text-caption text-ink-muted">À partir de </span>
-                      <span className="font-display text-h2 text-gold-ink">
-                        {formatFcfa(startingPrice(plan, cycle))}
-                      </span>
-                      <span className="text-caption text-ink-muted"> / mois</span>
-                    </p>
+                    {planCoversSeats(plan, seats) ? (
+                      <div aria-live="polite">
+                        <p>
+                          <span className="font-display text-h2 text-gold-ink">
+                            {formatFcfa(planMonthlyPrice(plan, seats, cycle))}
+                          </span>
+                          <span className="text-caption text-ink-muted"> / mois</span>
+                        </p>
+                        <p className="text-caption text-ink-muted">
+                          Pour {seats} poste{seats > 1 ? 's' : ''}
+                          {cycle === 'annuel' &&
+                            `, soit ${formatFcfa(planMonthlyPrice(plan, seats, cycle) * 12)} par an`}
+                        </p>
+                      </div>
+                    ) : (
+                      <div aria-live="polite">
+                        <p>
+                          <span className="text-caption text-ink-muted">À partir de </span>
+                          <span className="font-display text-h2 text-ink-muted">
+                            {formatFcfa(planMonthlyPrice(plan, plan.minSeats, cycle))}
+                          </span>
+                          <span className="text-caption text-ink-muted"> / mois</span>
+                        </p>
+                        <p className="text-caption text-ink-muted">
+                          Non adaptée à {seats} poste{seats > 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    )}
                     <p className="text-caption text-ink-muted">
-                      {plan.maxSeats
-                        ? `${plan.minSeats} à ${plan.maxSeats} postes`
-                        : `Dès ${plan.minSeats} postes`}{' '}
-                      · {formatFcfa(plan.pricePerSeatMonthly)} par poste et par mois
+                      {seatRange(plan)} · {formatFcfa(plan.basePriceMonthly)} de forfait +{' '}
+                      {formatFcfa(plan.pricePerSeatMonthly)} par poste et par mois
                     </p>
                     <Button
                       asChild
-                      variant={plan.highlighted ? 'secondary' : 'outline'}
+                      variant={
+                        plan === (fitting ?? plans.find((p) => p.highlighted))
+                          ? 'secondary'
+                          : 'outline'
+                      }
                       className="mt-auto"
                     >
-                      <Link to={`/devis?formule=${plan.slug}`}>Choisir {plan.name}</Link>
+                      <Link to={`/devis?formule=${plan.slug}&postes=${seats}`}>
+                        Choisir {plan.name}
+                      </Link>
                     </Button>
                   </Card>
                 </li>

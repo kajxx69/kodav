@@ -38,6 +38,7 @@ import { staffTicketsRouter, ticketsRouter } from './modules/support/ticket.rout
 import { technicianRouter } from './modules/appointments/technician.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { catalogRouter } from './modules/catalog/catalog.routes.js';
+import { assessmentRouter } from './modules/assessment/assessment.routes.js';
 import { diagnosticRouter } from './modules/diagnostic/diagnostic.routes.js';
 import { contentRouter } from './modules/content/content.routes.js';
 import { healthRouter } from './modules/health/health.routes.js';
@@ -88,6 +89,7 @@ export function createApp() {
   api.use('/organizations', organizationsRouter);
   api.use('/pricing', pricingRouter);
   api.use('/diagnostic', diagnosticRouter);
+  api.use('/assessments', assessmentRouter);
   api.use('/quotes', quotesRouter);
   api.use('/availability', availabilityRouter);
   api.use('/appointments', appointmentsRouter);

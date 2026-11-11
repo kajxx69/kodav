@@ -3,6 +3,7 @@ import { z } from 'zod';
 // Messages d'erreur par défaut de Zod en français (front et back).
 z.config(z.locales.fr());
 
+export * from './assessment.js';
 export * from './diagnostic.js';
 export * from './enums.js';
 export * from './format.js';

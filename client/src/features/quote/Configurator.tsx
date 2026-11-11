@@ -31,7 +31,7 @@ import { DetailsStep, InterventionStep, ServiceStep } from './steps';
 const STEPS = ['Services', 'Détails', 'Intervention', 'Coordonnées'] as const;
 
 /**
- * Pré-remplissage depuis l'URL : `?service=pole/slug` (fiche service), `?formule=pro`
+ * Pré-remplissage depuis l'URL : `?service=pole/slug` (fiche service), `?formule=pro&postes=10`
  * (contrats) ou `?services=id,id&urgency=…&mode=…&commune=…` (Diagnostic Express).
  */
 function draftFromUrl(params: URLSearchParams, catalog: CategoryWithServices[]): DraftState | null {
@@ -47,6 +47,7 @@ function draftFromUrl(params: URLSearchParams, catalog: CategoryWithServices[]):
     if (all.some((s) => s.id === id)) ids.push(id);
   }
   const plan = params.get('formule');
+  const seats = Number(params.get('postes')) || null;
   if (plan) {
     const contract = all.find((s) => s.slug === 'contrat-de-maintenance');
     if (contract) ids.push(contract.id);
@@ -65,7 +66,9 @@ function draftFromUrl(params: URLSearchParams, catalog: CategoryWithServices[]):
     commune: (COMMUNE_CHOICES as readonly string[]).includes(commune ?? '')
       ? (commune as DraftState['commune'])
       : undefined,
-    clientNotes: plan ? `Formule de maintenance souhaitée : ${plan}.` : '',
+    clientNotes: plan
+      ? `Formule de maintenance souhaitée : ${plan}${seats ? `, ${seats} postes` : ''}.`
+      : '',
     source: params.get('source') === 'diagnostic' ? 'diagnostic' : 'configurateur',
   };
 }

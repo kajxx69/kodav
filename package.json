@@ -16,11 +16,14 @@
     "test": "npm run build -w shared && npm run test -w shared && npm run test -w server && npm run test -w client",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "typecheck": "npm run build -w shared && npm run typecheck -w server && npm run typecheck -w client",
-    "seed": "npm run build -w shared && npm run seed -w server"
+    "typecheck": "npm run build -w shared && npm run typecheck -w server && npm run typecheck -w client && tsc -p e2e/tsconfig.json",
+    "seed": "npm run build -w shared && npm run seed -w server",
+    "test:e2e": "npm run build -w shared && VITE_API_URL=http://localhost:4100/api/v1 VITE_SITE_URL=http://localhost:5180 npm run build -w client && playwright test"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.56.1",
     "concurrently": "^10.0.7",
     "eslint": "^10.14.0",
     "eslint-config-prettier": "^10.1.8",

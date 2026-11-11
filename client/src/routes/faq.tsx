@@ -1,5 +1,6 @@
 import { HelpCircle } from 'lucide-react';
-import { Link } from 'react-router';
+import { useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router';
 import { PageHero } from '~/components/site/PageHero';
 import { Section } from '~/components/site/Section';
 import { Accordion, Button, EmptyState, ErrorState, Skeleton } from '~/components/ui';
@@ -33,6 +34,12 @@ export function meta({ matches, loaderData }: Route.MetaArgs) {
 
 export default function FaqPage({ loaderData }: Route.ComponentProps) {
   const { data: faqs, isError, refetch } = useLiveQuery(queries.faqs(), loaderData);
+  // Question ouverte depuis la palette de recherche : ?question=<id>.
+  const [params] = useSearchParams();
+  const opened = params.get('question') ?? undefined;
+  useEffect(() => {
+    if (opened && faqs) document.getElementById(`item-${opened}`)?.scrollIntoView();
+  }, [opened, faqs]);
   return (
     <>
       <PageHero overline="FAQ" title="Questions fréquentes" crumbs={[{ label: 'FAQ' }]} />
@@ -45,6 +52,8 @@ export default function FaqPage({ loaderData }: Route.ComponentProps) {
           )}
           {faqs && faqs.length > 0 && (
             <Accordion
+              key={opened}
+              defaultValue={opened}
               items={faqs.map((f) => ({ id: f.id, title: f.question, content: f.answer }))}
             />
           )}

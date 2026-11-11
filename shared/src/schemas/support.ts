@@ -256,6 +256,7 @@ export const NOTIFICATION_TYPES = [
   'appointment_status',
   'quote_sent',
   'license_expiring',
+  'lead_new',
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 

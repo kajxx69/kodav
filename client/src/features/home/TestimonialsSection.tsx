@@ -11,28 +11,31 @@ export function TestimonialsSection({ testimonials }: { testimonials: Testimonia
       <SectionHeader overline="Témoignages" title="Ce que disent nos clients" />
       <ul className="grid gap-6 md:grid-cols-3">
         {testimonials.slice(0, 6).map((t, i) => (
-          <Reveal key={t.id} delay={i * 0.05}>
-            <li className="flex h-full flex-col gap-4 rounded-lg border border-line bg-surface-raised p-6 shadow-sm">
-              <Quote className="size-6 text-gold" aria-hidden />
-              <blockquote className="flex-1 text-body text-ink">{t.content}</blockquote>
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-body-sm">
-                  <span className="block text-label">{t.authorName}</span>
-                  <span className="text-ink-muted">
-                    {[t.role, t.company].filter(Boolean).join(', ')}
-                  </span>
-                </p>
-                <p className="flex" aria-label={`Note : ${t.rating} sur 5`}>
-                  {Array.from({ length: 5 }, (_, s) => (
-                    <Star
-                      key={s}
-                      className={s < t.rating ? 'size-4 fill-gold text-gold' : 'size-4 text-line'}
-                      aria-hidden
-                    />
-                  ))}
-                </p>
-              </div>
-            </li>
+          <Reveal
+            as="li"
+            key={t.id}
+            delay={i * 0.05}
+            className="flex h-full flex-col gap-4 rounded-lg border border-line bg-surface-raised p-6 shadow-sm"
+          >
+            <Quote className="size-6 text-gold" aria-hidden />
+            <blockquote className="flex-1 text-body text-ink">{t.content}</blockquote>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-body-sm">
+                <span className="block text-label">{t.authorName}</span>
+                <span className="text-ink-muted">
+                  {[t.role, t.company].filter(Boolean).join(', ')}
+                </span>
+              </p>
+              <p className="flex" aria-label={`Note : ${t.rating} sur 5`}>
+                {Array.from({ length: 5 }, (_, s) => (
+                  <Star
+                    key={s}
+                    className={s < t.rating ? 'size-4 fill-gold text-gold' : 'size-4 text-line'}
+                    aria-hidden
+                  />
+                ))}
+              </p>
+            </div>
           </Reveal>
         ))}
       </ul>

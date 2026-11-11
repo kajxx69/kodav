@@ -56,18 +56,16 @@ export default function About() {
         <SectionHeader overline="Nos engagements" title="Ce qui guide chaque intervention" />
         <ul className="grid gap-6 sm:grid-cols-2">
           {values.map(({ icon: Icon, title, description }, i) => (
-            <Reveal key={title} delay={i * 0.05}>
-              <li className="h-full">
-                <Card className="flex h-full gap-4">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-md bg-gold-soft text-gold-ink">
-                    <Icon className="size-5" aria-hidden />
-                  </span>
-                  <div>
-                    <h3 className="text-h4">{title}</h3>
-                    <p className="mt-1 text-body-sm text-ink-muted">{description}</p>
-                  </div>
-                </Card>
-              </li>
+            <Reveal as="li" key={title} delay={i * 0.05} className="h-full">
+              <Card className="flex h-full gap-4">
+                <span className="grid size-11 shrink-0 place-items-center rounded-md bg-gold-soft text-gold-ink">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <div>
+                  <h3 className="text-h4">{title}</h3>
+                  <p className="mt-1 text-body-sm text-ink-muted">{description}</p>
+                </div>
+              </Card>
             </Reveal>
           ))}
         </ul>

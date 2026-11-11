@@ -10,7 +10,7 @@ import { audit } from '../../lib/audit.js';
 import { AppError, sendOk } from '../../lib/http.js';
 import { authenticate, requireRole } from '../../middlewares/auth.js';
 import { publicFormLimiter } from '../../middlewares/rateLimit.js';
-import { notify } from '../notifications/notification.service.js';
+import { notifyAdmins } from '../notifications/notification.service.js';
 import { Organization } from '../organizations/organization.model.js';
 import { Faq, Project, Testimonial } from '../content/content.model.js';
 import { User } from '../users/user.model.js';
@@ -46,16 +46,12 @@ clientTestimonialsRouter.post(
       consentAt: new Date(),
       client: user!._id,
     });
-    const admins = await User.find({ role: 'admin', isActive: true }, { _id: 1 }).lean();
-    await notify(
-      admins.map((a) => a._id),
-      {
-        type: 'ticket_new',
-        title: 'Nouvel avis client à valider',
-        body: input.content.slice(0, 120),
-        link: '/admin/contenu',
-      },
-    );
+    await notifyAdmins({
+      type: 'ticket_new',
+      title: 'Nouvel avis client à valider',
+      body: input.content.slice(0, 120),
+      link: '/admin/contenu',
+    });
     sendOk(res, { id: String(t._id) }, 201);
   },
 );
